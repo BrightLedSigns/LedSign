@@ -1,0 +1,7 @@
+_build/
+Build
+Build.bat
+MYMETA.*
+m?
+*.swo
+*.swp
