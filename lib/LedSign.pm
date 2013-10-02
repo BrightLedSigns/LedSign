@@ -136,7 +136,10 @@ sub objects {
     my $this=shift;
     my $objtype=shift;
     if (!defined($objtype)) {
-       croak("objects: No object type supplied");
+        croak("objects: No object type supplied");
+    }
+    if (!exists ($this->{objects}{$objtype})) {
+        return ();
     }
     return(@{$this->{objects}{$objtype}});
 }
