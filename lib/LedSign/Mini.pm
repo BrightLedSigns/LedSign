@@ -25,10 +25,10 @@ sub _init {
         return undef;
     }
     $this->{can_image}=1;
-    $this->{slotrange}=[@SLOTRANGE];
     $this->{device} = $params{device};
     $this->{devicetype} = $params{devicetype};
     $this->{msgcount}=0;
+    $this->initslots(@SLOTRANGE);
     $this->{factory}=LedSign::Mini::Factory->new();
     return $this;
 }
@@ -122,10 +122,10 @@ sub addMsg {
         if ($params{slot} !~ /^[1-8]$/) {
             croak("Parameter [slot] must be a value from 1 to 8");
         } else {
-            $this->slot($params{slot});
+            $this->setslot($params{slot});
         } 
     } else {
-        if (!defined($params{slot}=$this->slot)) {
+        if (!defined($params{slot}=$this->setslot)) {
             carp("Can't create message, out of slots");
             return undef;
         };
@@ -159,7 +159,7 @@ sub getshowbits {
            }
        }
     } else {
-       @slots = keys %{$this->{'msgslots'}};
+       @slots = @{$this->{'usedslots'}};
     }
     foreach my $num (@slots) {
         $bits += $BITVAL{$num};
@@ -229,12 +229,11 @@ sub send {
           $serial->write($data);
           select(undef,undef,undef,$packetdelay);
     }
-
     my $bits=$this->getshowbits(%params);
     if ($bits != 0) {
         my $runit=pack("C*",(0x02,0x33,$bits));
         $serial->write($runit);
-    }
+    } 
     if (defined $params{debug}) {
         return $serial->dump();
     }

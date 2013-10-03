@@ -63,7 +63,7 @@ sub _init {
     my(%params)=@_;
     $this->{device} = $params{device};
     $this->{refcount}=0;
-    $this->initslots(\@SLOTRANGE);
+    $this->initslots(@SLOTRANGE);
     $this->{factory} = LedSign::BB::Factory->new();
     return $this;
 }
@@ -125,7 +125,6 @@ sub addMsg {
         croak("Parameter [data] must be present");
         return undef;
     }
-    print "addMsg: data param is [$params{data}]\n";
 
     # effect
     if (!$params{effect}) {
@@ -318,9 +317,7 @@ sub send {
         my $count=0;
         foreach my $data (@packets) {
             $count++;
-            print "about to write data\n";
             my $count=$serial->write($data);
-            print "done write data\n";
             if ($^O eq "MSWin32") {
                 $serial->write_done;
             } else {
@@ -819,38 +816,13 @@ B<Note:> See the L</"caveat"> about start, stop and rundays.
 
 =item B<slot>
 
-Optional, and NOT recommended, because it's somewhat confusing.  The sign has 36 message slots, numbered from 0 to 9 and A to Z.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  The reason we don't recommend using the slot parameter is that, because of how the sign works, specifying a slot erases all other slots that have a higher number.  For example, if you send something specifically to slot 8, the contents of slots 9, and A-Z, will be erased.   The contents in slots 0-7, however, will remain intact.
+Optional.  The sign has 36 message slots, numbered from 0 to 9 and A to Y.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  
 
 This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
  
   #
-  # example of using the slot parameter INCORRECTLY
-  #  "Message Two" will never show.
-  #  Every time you use slot, all higher numbered slots are erased.
-  #  So, because these are sent out of order, the message in slot 1 is erased
-  my $sign=LedSign::BB->new();
-  $sign->addMsg(
-      data => "Message Two",
-      slot => 1
-  );
-  $sign->addMsg(
-      data => "Message One",
-      slot => 0
-  );
-  #
-  #
-  $sign->send(device => "COM3");
-
-  #
-  # example of using the slot parameter CORRECTLY
-  #   since these slots are in consecutive order (3, then 4), neither will
-  #   be erased 
+  # example of using the slot parameter
   # 
-  #   also, if the sign already had messages in slots 0, 1, or 2, they will continue
-  #   to be shown.
-  # 
-  #   however, any message running on the sign with a message slot higher 
-  #   than 4 would have been erased 
   #
   my $sign=LedSign::BB->new();
   $sign->addMsg(
@@ -861,7 +833,6 @@ This behavior may be useful to some people that want to, for example, keep a con
       data => "Message One",
       slot => 4
   );
-
   #
   #
   $sign->send(device => "COM3");

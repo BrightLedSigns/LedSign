@@ -87,7 +87,7 @@ sub _init {
     $this->{device} = $params{device};
     $this->{refcount}=0;
     $this->{factory} = LedSign::M500::Factory->new();
-    $this->initslots(slotrange => \@SLOTRANGE);
+    $this->initslots(@SLOTRANGE);
     return $this;
 }
 sub _factory {

@@ -54,10 +54,9 @@ sub _connect {
 }
 sub initslots {
     my $this=shift;
-    my %params=@_;
-    my $slotrange=$params{'slotrange'};
-    @{$this->{slotrange}}=@{$slotrange};
-    @{$this->{freeslots}}=@{$slotrange};
+    my @slotrange=@_;
+    @{$this->{slotrange}}=@slotrange;
+    @{$this->{freeslots}}=@slotrange;
     $this->{usedslots}=();
 }
 sub setslot {
