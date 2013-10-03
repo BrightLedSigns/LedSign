@@ -8,7 +8,7 @@ use POSIX qw(strftime);
 #
 # Shared Constants / Globals
 #
-our @SLOTRANGE=(0..9,'A'..'Y');
+our @SLOTRANGE=map { sprintf('%02d',$_) } (1..99);
 #
 # Selectively use Win32::Serial port if Windows OS detected,
 # otherwise, use Device::SerialPort
@@ -29,7 +29,7 @@ BEGIN
 # Shared Constants / Globals
 #
 our %EFFECTMAP = (
-    'AUTO' =>  'A',
+    'DEFAULT' => 'A', 'AUTO' =>  'A',
     'CYCLIC'          => 'A', 'IMMEDIATE'      => 'B',
     'OPENFROMRIGHT'   => 'C', 'OPENFROMLEFT'   => 'D',
     'OPENFROMCENTER'  => 'E', 'OPENTOCENTER'   => 'F',
@@ -43,13 +43,16 @@ our %EFFECTMAP = (
     'SHOOT'           => 'U', 'FLASH'          => 'V',
     'RANDOM'          => 'W', 'SLIDEIN'        => 'X', 
 );
+
 our %FONTMAP = (
      'DEFAULT'   => '\s', '7X6'      => '\s',  
      'SHORT'     => '\q', 'SHORTWIDE' => '\r',
-     'WIDE'      => '\t', '7X9' => '\u'
+     'WIDE'      => '\t', '7X9' => '\u',
      'EXTRAWIDE' => '\v', 'SMALL' => '\w'
 );
+
 our %COLORMAP= (
+    'DEFAULT' => '\b',
     'RED'          => '\a', 'BRIGHTRED'      => '\b',
     'ORANGE'       => '\c', 'BRIGHTORANGE'   => '\d',
     'YELLOW'       => '\e', 'BRIGHTYELLOW'   => '\f',
@@ -59,19 +62,32 @@ our %COLORMAP= (
     'GREENONRED'   => '\m', 'REDONGREEN'     => '\n',
     'ORANGEONRED'  => '\o', 'YELLOWONGREEN'  => '\p'
 );
-our %ALIGNMAP= (
-        LEFT => 1,
-        RIGHT => 2,
-        CENTER => 3
+
+our %SPMAP=(
+    'DEFAULT' => '\Y5',
+    '0' => '\Y1', '1' => '\Y2', '2' => '\Y3',
+    '3' => '\Y4', '4' => '\Y5', '5' => '\Y6',
+    '6' => '\Y7', '7' => '\Y8'
+);
+
+our %PAUSEMAP=(
+    '1' => '\Z1', '2' => '\Z2', '3' => '\Z3',
+    '4' => '\Z4', '4' => '\Z5', '5' => '\Z6',
+    '6' => '\Z7', '7' => '\Z8'
+);
+our %TDMAP=(
+    'DATE1' => '^A', 'DATE2' => '^B', 'DATE3' => '^C',
+    'DATE4' => '^a',
+    'TIME1' => '^D', 'TIME2' => '^E', 'TIME3' => '^F' 
 );
 
 sub _init {
     my $this=shift;
     my(%params)=@_;
-    $this->{slotrange}=[@SLOTRANGE];
     $this->{device} = $params{device};
     $this->{refcount}=0;
     $this->{factory} = LedSign::M500::Factory->new();
+    $this->initslots(slotrange => \@SLOTRANGE);
     return $this;
 }
 sub _factory {
@@ -84,8 +100,7 @@ sub addCfg {
     if (!defined($params{setting})) {
         croak("Parameter [data] must be present");
     }
-    my @validcmds=qw(brightness cleardata reset settime signmode
-                     displaymode);
+    my @validcmds=qw(test settime alarm);
     if (!grep(/^$params{setting}$/,@validcmds)) {
         croak("Invalid value [$params{setting}] for parameter setting");
     }  
@@ -93,32 +108,16 @@ sub addCfg {
         if (!exists($params{value})) {
           croak("No value parameter specified for settime setting");
         }
-        if ($params{value} ne "now" and $params{value} !~ /^\d$/) {
+        if ($params{value} ne "now" and $params{value} !~ /^\d+$/) {
           croak("Invalid value [$params{value}] specified for settime");
         }
     }
-    if ($params{setting} eq "brightness") {
+    if ($params{setting} eq "alarm") {
         if (!exists($params{value})) {
-          croak("No value parameter specified for brightness setting");
+          croak("No value parameter specified for alarm setting");
         }
-        if ($params{value} !~ /^[1-8AT]$/) {
-          croak("Brightness value must be either 'A' or a number from 1 to 8");
-        }
-    }
-    if ($params{setting} eq "signmode") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for signmode setting");
-        }
-        if ($params{value} !~ /^(basic|expand)$/) {
-          croak("signmode  value must be either basic or expand");
-        }
-    }
-    if ($params{setting} eq "displaymode") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for displaymode setting");
-        }
-        if ($params{value} !~ /^(allslots|bytime)$/) {
-          croak("Brightness value must be either allslots or bytime");
+        if ($params{value} ne "on" and $params{value} ne "off") {
+          croak("Invalid value [$params{value}] specified for alarm");
         }
     }
     my $cobj=$this->_factory->control(
@@ -132,7 +131,6 @@ sub addMsg {
         croak("Parameter [data] must be present");
         return undef;
     }
-    print "addMsg: data param is [$params{data}]\n";
 
     # effect
     if (!$params{effect}) {
@@ -146,11 +144,8 @@ sub addMsg {
     }
 
     # speed
-    if (!exists($params{speed})) {
-        $params{speed}=2;
-    }
-    if ($params{speed} !~ /^[1-5]$/) {
-        croak("Parameter [speed] must be between 1 (slowest) and 5 (fastest)");
+    if (exists($params{speed}) && $params{speed} !~ /^[1-8]$/) {
+        croak("Parameter [speed] must be between 1 (fastest) and 8 (slowest)");
         return undef;
     } 
  
@@ -159,19 +154,19 @@ sub addMsg {
         $params{pause}=2;
     }
 
-    if ($params{pause} !~ /^[0-9]$/) {
-        croak("Parameter [pause] must be between 0 and 9 (seconds)");
+    if ($params{pause} !~ /^[0-8]$/) {
+        croak("Parameter [pause] must be between 0 and 8 (seconds)");
         return undef;
     } 
 
     if (exists($params{slot})) {
-        if ($params{slot} !~ /^[0-9A-Z]$/) {
-            croak("Parameter [slot] must be a value from 0-9,A-Z");
+        if ($params{slot} !~ /^[0-9][0-9]$/) {
+            croak("Parameter [slot] must be a value from 00-99");
         } else {
-            $this->slot($params{slot});
+            $this->setslot($params{slot});
         } 
     } else {
-        $params{slot}=$this->slot;
+        $params{slot}=$this->setslot;
     }
     
     # Align
@@ -181,6 +176,14 @@ sub addMsg {
        } 
     } else {
        $params{align}="CENTER";
+    }
+    # Color
+    if (exists($params{color})) {
+        my @colors=keys(%LedSign::M500::COLORMAP);
+        if (!grep(/^$params{color}$/,@colors)) {
+            croak("Invalid color value [$params{color}]");
+            return undef;
+        }
     }
 
     # Font
@@ -192,14 +195,6 @@ sub addMsg {
         }
     }
     
-    # Color
-    if (exists($params{color})) {
-        my @colors=keys(%LedSign::M500::COLORMAP);
-        if (!grep(/^$params{color}$/,@colors)) {
-            croak("Invalid color value [$params{color}]");
-            return undef;
-        }
-    }
 
     # Start and Stop Time 
     if (!exists($params{start})) {
@@ -285,6 +280,7 @@ sub send {
             croak("Must supply the device name.");
             return undef;
     }
+    
     my $baudrate;
     if (defined($params{baudrate})) {
         my @validrates = qw( 0 50 75 110 134 150 200 300 600
@@ -300,6 +296,19 @@ sub send {
     } else {
         $baudrate="9600";
     }
+
+    my $packetdelay;
+    if (defined($params{packetdelay})) {
+       if ($params{packetdelay} =~ m#^\d*\.{0,1}\d*$#) {
+           $packetdelay=$params{packetdelay};
+       } else {
+           croak('Invalid value ['.$params{packetdelay}.
+                 '] for parameter packetdelay');
+       }
+    } else {
+       $packetdelay=0.20;
+    }
+
     my $serial;
     if (defined $params{debug}) {
         $serial=LedSign::M500::SerialTest->new();
@@ -311,7 +320,7 @@ sub send {
     }
     # send an initial null, wakes up the sign
     my $count=0;
-    foreach my $obj (@{$this->_factory->objects}) {
+    foreach my $obj (@{$this->_factory->objects()}) {
         $count++;
         my $objtype=$obj->{'objtype'};
         #
@@ -325,9 +334,7 @@ sub send {
         my $count=0;
         foreach my $data (@packets) {
             $count++;
-            print "about to write data\n";
             my $count=$serial->write($data);
-            print "done write data\n";
             if ($^O eq "MSWin32") {
                 $serial->write_done;
             } else {
@@ -336,26 +343,30 @@ sub send {
             if ($count != length($data)) {
                 carp("Serial write error, [$count] bytes written, error [$^E]");
             }
-            # wait up to 1 second for the initial ack
-            $serial->read_const_time("1000");
-            my $ack=$serial->read(1);
-            if (ord($ack) ne 0x04) {
-                carp("Initial serial ACK from sign corrupted");
-            }
-            #
-            #
-            my $wait=$obj->getwait;
-            $serial->read_const_time($wait);
-            $serial->write_settings();
-            my $eot=$serial->read(1);
-            if (ord($eot) ne 0x01) {
-                carp("Final serial ACK from sign corrupted");
-            }
-            $serial->purge_all;
-            # sleep for 8/10 of a second
-            select(undef,undef,undef,0.8);
+            select(undef,undef,undef,$packetdelay);
         }
     }
+    my @slots;
+    if (exists($params{showslots})) {
+       # strip spaces
+       $params{showslots} =~ s#\s##g;
+       foreach my $one (split(/\,/,$params{showslots})) {
+           if (!grep(/^$one$/,@LedSign::M500::SLOTRANGE)) {
+               croak("Invalid value [$one] in parameter [showslots]");
+           } else {
+               push(@slots,$one);
+           }
+       }
+    } else {
+       @slots=@{$this->{usedslots}};
+    }
+    if (length(@slots) > 0) {
+        my $slotlist=join('',@slots);
+        my $runit="~128~S0111111100002359${slotlist}";
+        $runit.="\r\r\r";
+        select(undef,undef,undef,$packetdelay);
+        $serial->write($runit);
+    } 
     if (defined $params{debug}) {
         return $serial->dump();
     }
@@ -372,6 +383,7 @@ sub _init {
     }
     $this->{count}=0;
     $this->{msgslots}=();
+    $this->{objects}=();
     return $this;
 }
 sub msg {
@@ -399,7 +411,11 @@ sub count {
 }
 sub objects {
     my $this=shift;
-    return $this->{objects};
+    if (defined($this->{objects})) {
+        return $this->{objects};
+    } else {
+        return [];
+    }
 }
 #
 # Superclass for Msg and Config, basically "things" that you send to the send
@@ -461,97 +477,71 @@ sub encode {
     my $header=$this->header;
     my $msg;
     # STX
-    $msg=pack("C",0x02);
     my $msgdata='';
     if ($objtype eq "msg") {
-        $msgdata=$this->processTags();
-        # replace newlines or carriage return, or cr/lf with sign's linefeed char
-        $msgdata =~ s#\r\n#\x7f#g;$msgdata =~ s#\r#\x7f#g;$msgdata =~ s#\n#\x7f#g;
-        #
-        # if they specified a default font for the message, prepend the font
-        # tag to the message data
-        #
-        if (exists($this->{color})) {
-            my $colortag= pack("C",0xfd) . $LedSign::M500::COLORMAP{$this->{color}};
-            $msgdata=$colortag . $msgdata;
-        }
-        if (exists($this->{font})) {
-            my $fonttag= pack("C",0xfe) . $LedSign::M500::FONTMAP{$this->{font}};
-            $msgdata=$fonttag . $msgdata;
-        }
-        
-        #
-        # display mode
-        # A= TEXT, C = VARIABLE, E = GRAPHIC, W = WRITE SPECIAL, R= READ SPECIAL
-        $msg .= 'A';
+        $msg='~128';
         # message slot (valid slots are 0..9 and A..Z, 36 slots total);
-        $msg   .= $this->{slot};
+        $msg   .= '~f' . $this->{slot};
         # effect
         my $effect=$LedSign::M500::EFFECTMAP{$this->{effect}};
         if (! $effect ) {
-            $effect=$EFFECTMAP{AUTO};
+            $effect=$EFFECTMAP{'AUTO'};
         } 
         $msg .= $effect;
-        # speed, pause time
-        $msg .= $this->{speed};$msg .= $this->{pause};
-        # dates and times
-        my $rundays = sprintf('%02X', oct("0b$this->{rundays}"));
-        $msg .= $rundays;
-        $msg .= $this->{start};
-        $msg .= $this->{stop};
-        # placeholder
-        $msg .= '000';
-        # alignment (left,center,right);
-        $msg .= $LedSign::M500::ALIGNMAP{$this->{align}};
+	my $color;
+        if (exists($this->{color})) {
+            $color=$LedSign::M500::COLORMAP{$this->{color}};
+        } else {
+            $color=$LedSign::M500::COLORMAP{'BRIGHTRED'};
+        }
+        $msg.=$color;
+        my $font;
+        if (exists($this->{font})) {
+            $font=$LedSign::M500::FONTMAP{$this->{font}};
+        } else {
+            $font=$LedSign::M500::FONTMAP{'DEFAULT'};
+        }
+        $msg.=$font;
+        if (exists($this->{speed})) {
+            my $speed=$LedSign::M500::SPMAP{$this->{speed}};
+            $msg.=$speed;
+        } 
+        $msgdata=$this->processTags();
+        if (exists($this->{pause})) {
+            my $pause=$LedSign::M500::PAUSEMAP{$this->{pause}};
+            $msg.=$pause;
+        }
+        $msgdata.="\r\r\r";
     } elsif ($objtype eq "config") {
-        $msg .= "W";
+        $msg .= "~128";
         my $setting=$this->{setting};
         my $value=$this->{value};
-        if ($setting eq "reset") {
-           $msg .= "B";
-        }
-        if ($setting eq "cleardata") {
-           #
-           # the cleardata command takes 30 seconds to send back an ack
-           # so, we'll set the wait time to a higher value
-           #
-           $this->setwait("35000");
-           $msg .= "L";
-        }
-        if ($setting eq "brightness") {
-           $msg .= "P" . $value;
-        }
         if ($setting eq "settime") {
+           $msg .= '~E';
            if ($value eq "now") {
-               $msg .= "A".POSIX::strftime("%Y%m%d%H%M%S%w",localtime(time));
+               $msg .= POSIX::strftime("%u1%y%m%d%H%M%S",localtime(time));
            } else {
-               $msg .= "A".POSIX::strftime("%Y%m%d%H%M%S%w",localtime($value));
+               $msg .= POSIX::strftime("%u1%y%m%d%H%M%S",localtime($value));
            }
         }
-        if ($setting eq "signmode") {
-           if ($value eq "basic") {
-               $msg .= "Y" . "1";
-           } elsif ($value eq "expand") {
-               $msg .= "Y" . "0";
-           }
+        if ($setting eq "alarm") {
+            if ($value eq "on") {
+               $msg .= '~B';
+            } else {
+               $msg .= '~b';
+            }
         }
-        if ($setting eq "displaymode") {
-           if ($value eq "allslots") {
-               $msg .= "F" . "A";
-           } elsif ($value eq "bytime") {
-               $msg .= "F" . "T";
-           }
+        if ($setting eq "test") {
+           $msg .= '~t';
         }
+        $msg.="\r\r\r";
     }
     $msg .= $msgdata;
     # End of Text - ETX
-    $msg .= pack("C",0x03);
     # Supposed to be a checksum - sign seems to ignore it though.
-    my $checksum=$this->checksum($msg);
     # EOT - End of Transmission
-    my $trailer = pack("C",0x04);
     my @encoded;
-    push(@encoded,$header . $msg . $checksum . $trailer);
+    push(@encoded,$msg);
     return @encoded;
 }
 #
@@ -585,34 +575,68 @@ sub new {
 sub processTags {
     my $this = shift;
     my $msgdata=$this->{data};
+    # escape backslashes
+    $msgdata=~s#\\#\\\\#g;
+    # escape carats
+    $msgdata=~s#\^#\\^#g;
+    # change newlines and carriage returns to spaces
+    $msgdata=~s#\n# #g;
+    $msgdata=~s#\r# #g;
     # font tags
     # font
-    my $fontctl=pack("C",0xfe);
     while ($msgdata =~ /(<f:([^>]+)>)/gi) {
         my $fonttag=$1; my $font=$2; my $substitute;
         if (exists($FONTMAP{$font})) {
-           $substitute=$fontctl . $LedSign::M500::FONTMAP{$font};
+           $substitute=$LedSign::M500::FONTMAP{$font};
         } else {
            $substitute='';
         }
         $msgdata=~s/$fonttag/$substitute/;
     }
     # color
-    my $colorctl=pack("C",0xfd);
     while ($msgdata =~ /(<c:([^>]+)>)/gi) {
         my $colortag=$1; my $color=$2; my $substitute;
         if (exists($COLORMAP{$color})) {
-           $substitute=$colorctl . $LedSign::M500::COLORMAP{$color};
+           $substitute=$LedSign::M500::COLORMAP{$color};
         } else {
            $substitute='';
         }
         $msgdata=~s/$colortag/$substitute/;
     }
-    my $timectl=pack("C",0xfa);
+    # effect
+    while ($msgdata =~ /(<e:([^>]+)>)/gi) {
+        my $effecttag=$1; my $effect=$2; my $substitute;
+        if (exists($EFFECTMAP{$effect})) {
+           $substitute="\r" .$LedSign::M500::EFFECTMAP{$effect} . '\\c';
+        } else {
+           $substitute='';
+        }
+        $msgdata=~s/$effecttag/$substitute/;
+    }
+    # speed
+    while ($msgdata =~ /(<s:([^>]+)>)/gi) {
+        my $speedtag=$1; my $speed=$2; my $substitute;
+        if (exists($SPMAP{$speed})) {
+           $substitute=$LedSign::M500::SPMAP{$speed};
+        } else {
+           $substitute='';
+        }
+        $msgdata=~s/$speedtag/$substitute/;
+    }
+    # pause
+    while ($msgdata =~ /(<p:([^>]+)>)/gi) {
+        my $pausetag=$1; my $pause=$2; my $substitute;
+        if (exists($PAUSEMAP{$pause})) {
+           $substitute=$LedSign::M500::PAUSEMAP{$pause};
+        } else {
+           $substitute='';
+        }
+        $msgdata=~s/$pausetag/$substitute/;
+    }
     while ($msgdata =~ /(<t:([^>]+)>)/gi) {
         my $timetag=$1; my $time=$2; my $substitute;
-        if ($time =~ /^[A-J]$/)  {
-           $substitute=$timectl . $time
+        if (exists($TDMAP{$time})) {
+           $substitute=$LedSign::M500::TDMAP{$time};
         } else {
            $substitute='[INVALID TIME TAG]';
         }

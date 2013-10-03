@@ -61,9 +61,9 @@ our %ALIGNMAP= (
 sub _init {
     my $this=shift;
     my(%params)=@_;
-    $this->{slotrange}=[@SLOTRANGE];
     $this->{device} = $params{device};
     $this->{refcount}=0;
+    $this->initslots(\@SLOTRANGE);
     $this->{factory} = LedSign::BB::Factory->new();
     return $this;
 }
@@ -86,7 +86,7 @@ sub addCfg {
         if (!exists($params{value})) {
           croak("No value parameter specified for settime setting");
         }
-        if ($params{value} ne "now" and $params{value} !~ /^\d$/) {
+        if ($params{value} ne "now" and $params{value} !~ /^\d+$/) {
           croak("Invalid value [$params{value}] specified for settime");
         }
     }
@@ -161,10 +161,10 @@ sub addMsg {
         if ($params{slot} !~ /^[0-9A-Z]$/) {
             croak("Parameter [slot] must be a value from 0-9,A-Z");
         } else {
-            $this->slot($params{slot});
+            $this->setslot($params{slot});
         } 
     } else {
-        $params{slot}=$this->slot;
+        $params{slot}=$this->setslot;
     }
     
     # Align
@@ -364,7 +364,6 @@ sub _init {
         $this->{$key}=$params{$key};
     }
     $this->{count}=0;
-    $this->{msgslots}=();
     return $this;
 }
 sub msg {

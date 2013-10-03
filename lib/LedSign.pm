@@ -52,29 +52,34 @@ sub _connect {
     $serial->write_settings();
     return $serial;
 }
-sub slot {
+sub initslots {
     my $this=shift;
-    my $slot;
-    $slot=shift;
-    my $return;
-    if (!defined($slot)) {
-         # a slot wasn't specified, so issue the next available
-         for (@{$this->{slotrange}}) {
-             if (!exists($this->{msgslots}{$_})) {
-                 $this->{msgslots}->{$_}=1;
-                 $return=$_;
-                 last;
-             }
-         }
-    } else {
-        if (exists($this->{msgslots}->{$slot})) {
-            croak("Slot [$slot] already in use\n");
+    my %params=@_;
+    my $slotrange=$params{'slotrange'};
+    @{$this->{slotrange}}=@{$slotrange};
+    @{$this->{freeslots}}=@{$slotrange};
+    $this->{usedslots}=();
+}
+sub setslot {
+    my $this=shift;
+    my $slot=shift;
+    if (defined($slot)) {
+        if (grep {$_ eq $slot}  @{$this->{freeslots}}) {
+            push(@{$this->{usedslots}},$slot);
+            @{$this->{freeslots}}=grep {$_ ne $slot} @{$this->{freeslots}};
+            return $slot
         } else {
-            $this->{msgslots}->{$slot}=1;
-            $return=$slot;
+           croak("Slot [$slot] not available\n");
         }
+    } else {
+          if (length(@{$this->{freeslots}}) > 0) {
+              my $newslot=shift(@{$this->{freeslots}});
+              push(@{$this->{usedslots}},$newslot);
+              return $newslot
+          } else {
+              croak("Out of slots\n");
+          }
     }
-    return $return;
 }
 #
 # setkey and getkey to store and retrieve
