@@ -6,7 +6,7 @@ use 5.005;
 $LedSign::VERSION="0.01";
 #
 # Use Win32::Serial port on Windows otherwise, use Device::SerialPort
-#
+#;
 BEGIN 
 {
    my $IS_WINDOWS = ($^O eq "MSWin32" or $^O eq "cygwin") ? 1 : 0;
