@@ -5,252 +5,275 @@ use strict;
 use warnings;
 use 5.005;
 use POSIX qw(strftime);
+
 #
 # Shared Constants / Globals
 #
-our @SLOTRANGE=(0..9,'A'..'Y');
+our @SLOTRANGE = ( 0 .. 9, 'A' .. 'Y' );
+
 #
 # Selectively use Win32::Serial port if Windows OS detected,
 # otherwise, use Device::SerialPort
 #
-BEGIN 
-{
-   my $IS_WINDOWS = ($^O eq "MSWin32" or $^O eq "cygwin") ? 1 : 0;
-   #
-   if ($IS_WINDOWS) {
-      eval "use Win32::SerialPort 0.14";
-      die "$@\n" if ($@);
-   } else {
-      eval "use Device::SerialPort";
-      die "$@\n" if ($@);
-   }
+BEGIN {
+    my $IS_WINDOWS = ( $^O eq "MSWin32" or $^O eq "cygwin" ) ? 1 : 0;
+
+    #
+    if ($IS_WINDOWS) {
+        eval "use Win32::SerialPort 0.14";
+        die "$@\n" if ($@);
+    }
+    else {
+        eval "use Device::SerialPort";
+        die "$@\n" if ($@);
+    }
 }
+
 #
 # Shared Constants / Globals
 #
 our %EFFECTMAP = (
-        AUTO => 'A', FLASH => 'B' , HOLD => 'C' , INTERLOCK => 'D' , 
-        ROLLDOWN => 'E' , ROLLUP => 'F' , ROLLIN => 'G', ROLLOUT => 'H',
-        ROLLLEFT => 'I', ROLLRIGHT => 'J', ROTATE => 'K', SLIDE => 'L',
-        SNOW => 'M', SPARKLE => 'N', SPRAY => 'O', STARBURST => 'P',
-        SWITCH => 'Q', TWINKLE => 'R', WIPEDOWN => 'S', WIPEUP => 'T',
-        WIPEIN => 'U', WIPEOUT => 'V', WIPELEFT => 'W', WIPERIGHT => 'X',
-        CYCLECOLOR => 'Y', CLOCK => 'Z'
+    AUTO       => 'A', FLASH      => 'B', HOLD       => 'C',
+    INTERLOCK  => 'D', ROLLDOWN   => 'E', ROLLUP     => 'F',
+    ROLLIN     => 'G', ROLLOUT    => 'H', ROLLLEFT   => 'I',
+    ROLLRIGHT  => 'J', ROTATE     => 'K', SLIDE      => 'L',
+    SNOW       => 'M', SPARKLE    => 'N', SPRAY      => 'O',
+    STARBURST  => 'P', SWITCH     => 'Q', TWINKLE    => 'R',
+    WIPEDOWN   => 'S', WIPEUP     => 'T', WIPEIN     => 'U',
+    WIPEOUT    => 'V', WIPELEFT   => 'W', WIPERIGHT  => 'X',
+    CYCLECOLOR => 'Y', CLOCK      => 'Z'
 );
 our %FONTMAP = (
-        SS5 => 'A', ST5 => 'B', WD5 => 'C', WS5 => 'D', 
-        SS7 => 'E', ST7 => 'F', WD7 => 'G', WS7 => 'H', 
-        SDS => 'I', SRF => 'J', STF => 'K', WDF => 'L', 
-        WSF => 'M', SDF => 'N', SS10 => 'O', ST10 => 'P', 
-        WD10 => 'Q', WS10 => 'R', SS15 => 'S', ST15 => 'T', 
-        WD15 => 'U', WS15 => 'V', SS24 => 'W', ST31 => 'X', 
-        SMALL => '@'
-    );
-our %COLORMAP= (
-        AUTO => 'A', RED => 'B', GREEN => 'C', YELLOW => 'F',
-        DIM_RED => 'D', DIM_GREEN => 'E',
-        BROWN => 'G', AMBER => 'H', ORANGE => 'I', 
-        MIX1 => 'J', MIX2 => 'K', MIX3 => 'L',BLACK => 'M'
+    SS5   => 'A', ST5   => 'B', WD5   => 'C', WS5   => 'D',
+    SS7   => 'E', ST7   => 'F', WD7   => 'G', WS7   => 'H',
+    SDS   => 'I', SRF   => 'J', STF   => 'K', WDF   => 'L',
+    WSF   => 'M', SDF   => 'N', SS10  => 'O', ST10  => 'P',
+    WD10  => 'Q', WS10  => 'R', SS15  => 'S', ST15  => 'T',
+    WD15  => 'U', WS15  => 'V', SS24  => 'W', ST31  => 'X',
+    SMALL => '@'
 );
-our %ALIGNMAP= (
-        LEFT => 1,
-        RIGHT => 2,
-        CENTER => 3
+our %COLORMAP = (
+    AUTO      => 'A', RED       => 'B', GREEN     => 'C',
+    YELLOW    => 'F', DIM_RED   => 'D', DIM_GREEN => 'E',
+    BROWN     => 'G', AMBER     => 'H', ORANGE    => 'I',
+    MIX1      => 'J', MIX2      => 'K', MIX3      => 'L',
+    BLACK     => 'M'
+);
+our %ALIGNMAP = (
+    LEFT   => 1, RIGHT  => 2, CENTER => 3
 );
 
 sub _init {
-    my $this=shift;
-    my(%params)=@_;
-    $this->{device} = $params{device};
-    $this->{refcount}=0;
+    my $this = shift;
+    my (%params) = @_;
+    $this->{device}   = $params{device};
+    $this->{refcount} = 0;
     $this->initslots(@SLOTRANGE);
     $this->{factory} = LedSign::BB::Factory->new();
     return $this;
 }
+
 sub _factory {
-    my($this) = shift;
+    my ($this) = shift;
     return $this->{factory};
 }
+
 sub addCfg {
-    my($this) = shift;
-    my(%params)=@_;
-    if (!defined($params{setting})) {
+    my ($this)   = shift;
+    my (%params) = @_;
+    if ( !defined( $params{setting} ) ) {
         croak("Parameter [data] must be present");
     }
-    my @validcmds=qw(brightness cleardata reset settime signmode
-                     displaymode);
-    if (!grep(/^$params{setting}$/,@validcmds)) {
+    my @validcmds = qw(brightness cleardata reset settime signmode
+      displaymode);
+    if ( !grep( /^$params{setting}$/, @validcmds ) ) {
         croak("Invalid value [$params{setting}] for parameter setting");
-    }  
-    if ($params{setting} eq "settime") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for settime setting");
+    }
+    if ( $params{setting} eq "settime" ) {
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for settime setting");
         }
-        if ($params{value} ne "now" and $params{value} !~ /^\d+$/) {
-          croak("Invalid value [$params{value}] specified for settime");
+        if ( $params{value} ne "now" and $params{value} !~ /^\d+$/ ) {
+            croak("Invalid value [$params{value}] specified for settime");
         }
     }
-    if ($params{setting} eq "brightness") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for brightness setting");
+    if ( $params{setting} eq "brightness" ) {
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for brightness setting");
         }
-        if ($params{value} !~ /^[1-8AT]$/) {
-          croak("Brightness value must be either 'A' or a number from 1 to 8");
-        }
-    }
-    if ($params{setting} eq "signmode") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for signmode setting");
-        }
-        if ($params{value} !~ /^(basic|expand)$/) {
-          croak("signmode  value must be either basic or expand");
+        if ( $params{value} !~ /^[1-8AT]$/ ) {
+            croak(
+                "Brightness value must be either 'A' or a number from 1 to 8");
         }
     }
-    if ($params{setting} eq "displaymode") {
-        if (!exists($params{value})) {
-          croak("No value parameter specified for displaymode setting");
+    if ( $params{setting} eq "signmode" ) {
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for signmode setting");
         }
-        if ($params{value} !~ /^(allslots|bytime)$/) {
-          croak("Brightness value must be either allslots or bytime");
+        if ( $params{value} !~ /^(basic|expand)$/ ) {
+            croak("signmode  value must be either basic or expand");
         }
     }
-    my $cobj=$this->_factory->control(
-        %params,
-    );
+    if ( $params{setting} eq "displaymode" ) {
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for displaymode setting");
+        }
+        if ( $params{value} !~ /^(allslots|bytime)$/ ) {
+            croak("Brightness value must be either allslots or bytime");
+        }
+    }
+    my $cobj = $this->_factory->control( %params, );
 }
+
 sub addMsg {
-    my($this) = shift;
-    my(%params)=@_;
-    if (!defined($params{data})) {
+    my ($this)   = shift;
+    my (%params) = @_;
+    if ( !defined( $params{data} ) ) {
         croak("Parameter [data] must be present");
         return undef;
     }
 
     # effect
-    if (!$params{effect}) {
-        $params{effect}="AUTO";
-    } else {
-        my @effects=keys(%LedSign::BB::EFFECTMAP);
-        if (!grep(/^$params{effect}$/,@effects)) {
+    if ( !$params{effect} ) {
+        $params{effect} = "AUTO";
+    }
+    else {
+        my @effects = keys(%LedSign::BB::EFFECTMAP);
+        if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
             return undef;
         }
     }
 
     # speed
-    if (!exists($params{speed})) {
-        $params{speed}=2;
+    if ( !exists( $params{speed} ) ) {
+        $params{speed} = 2;
     }
-    if ($params{speed} !~ /^[1-5]$/) {
+    if ( $params{speed} !~ /^[1-5]$/ ) {
         croak("Parameter [speed] must be between 1 (slowest) and 5 (fastest)");
         return undef;
-    } 
- 
-    # pause
-    if (!exists($params{pause})) {
-        $params{pause}=2;
     }
 
-    if ($params{pause} !~ /^[0-9]$/) {
+    # pause
+    if ( !exists( $params{pause} ) ) {
+        $params{pause} = 2;
+    }
+
+    if ( $params{pause} !~ /^[0-9]$/ ) {
         croak("Parameter [pause] must be between 0 and 9 (seconds)");
         return undef;
-    } 
-
-    if (exists($params{slot})) {
-        if ($params{slot} !~ /^[0-9A-Z]$/) {
-            croak("Parameter [slot] must be a value from 0-9,A-Z");
-        } else {
-            $this->setslot($params{slot});
-        } 
-    } else {
-        $params{slot}=$this->setslot;
     }
-    
+
+    if ( exists( $params{slot} ) ) {
+        if ( $params{slot} !~ /^[0-9A-Z]$/ ) {
+            croak("Parameter [slot] must be a value from 0-9,A-Z");
+        }
+        else {
+            $this->setslot( $params{slot} );
+        }
+    }
+    else {
+        $params{slot} = $this->setslot;
+    }
+
     # Align
-    if (exists($params{align})) {
-       if ($params{align} ne "LEFT" && $params{align} ne "CENTER" && $params{align} ne "RIGHT") {
-            croak("Parameter [align] must be one of LEFT, RIGHT, or CENTER"); 
-       } 
-    } else {
-       $params{align}="CENTER";
+    if ( exists( $params{align} ) ) {
+        if (   $params{align} ne "LEFT"
+            && $params{align} ne "CENTER"
+            && $params{align} ne "RIGHT" )
+        {
+            croak("Parameter [align] must be one of LEFT, RIGHT, or CENTER");
+        }
+    }
+    else {
+        $params{align} = "CENTER";
     }
 
     # Font
-    if (exists($params{font})) {
-        my @fonts=keys(%LedSign::BB::FONTMAP);
-        if (!grep(/^$params{font}$/,@fonts)) {
+    if ( exists( $params{font} ) ) {
+        my @fonts = keys(%LedSign::BB::FONTMAP);
+        if ( !grep( /^$params{font}$/, @fonts ) ) {
             croak("Invalid font value [$params{font}]");
             return undef;
         }
     }
-    
+
     # Color
-    if (exists($params{color})) {
-        my @colors=keys(%LedSign::BB::COLORMAP);
-        if (!grep(/^$params{color}$/,@colors)) {
+    if ( exists( $params{color} ) ) {
+        my @colors = keys(%LedSign::BB::COLORMAP);
+        if ( !grep( /^$params{color}$/, @colors ) ) {
             croak("Invalid color value [$params{color}]");
             return undef;
         }
     }
 
-    # Start and Stop Time 
-    if (!exists($params{start})) {
-        $params{start}="0000";
-    } else {
-        if ($params{start} !~ /^\d{4}$/ or $params{start} < 0
-            or $params{start} > 2359 ) {
+    # Start and Stop Time
+    if ( !exists( $params{start} ) ) {
+        $params{start} = "0000";
+    }
+    else {
+        if (   $params{start} !~ /^\d{4}$/
+            or $params{start} < 0
+            or $params{start} > 2359 )
+        {
             croak("Invalid start time value [$params{start}]");
         }
     }
-    if (! exists($params{stop}) ) {
-        $params{stop}="2359";
-    } else {
-        if ($params{stop} !~ /^\d{4}$/ or $params{stop} < 0
-            or $params{stop} > 2359 ) {
-            croak("Invalid stop time value [$params{stop}]") 
-        }  
+    if ( !exists( $params{stop} ) ) {
+        $params{stop} = "2359";
     }
+    else {
+        if (   $params{stop} !~ /^\d{4}$/
+            or $params{stop} < 0
+            or $params{stop} > 2359 )
+        {
+            croak("Invalid stop time value [$params{stop}]");
+        }
+    }
+
     # rundays is a 7 digit binary string (all digits must be 1 or 0)
     # the first digit is sunday, the next monday, and so on
     # so, to run only on sundays -> 1000000
     #            every day       -> 1111111
     #         monday and tuesday -> 0110000
-    if (!exists($params{rundays})) {
-        $params{rundays}="1111111";
-    } 
-    if ($params{rundays} !~ /^[01]{7}$/) {
+    if ( !exists( $params{rundays} ) ) {
+        $params{rundays} = "1111111";
+    }
+    if ( $params{rundays} !~ /^[01]{7}$/ ) {
         croak("Invalid rundays value [$params{rundays}].");
     }
-    my $mobj=$this->_factory->msg(
-        %params,
-    );
+    my $mobj = $this->_factory->msg( %params, );
     return $this->_factory->count;
 
 }
+
 sub _connect {
-    my $this=shift;
-    my(%params)=@_;
+    my $this = shift;
+    my (%params) = @_;
     my $serial;
-    my $port=$params{device};
-    my $baudrate=$params{baudrate};
-    my $IS_WINDOWS = ($^O eq "MSWin32" or $^O eq "cygwin") ? 1 : 0;
+    my $port       = $params{device};
+    my $baudrate   = $params{baudrate};
+    my $IS_WINDOWS = ( $^O eq "MSWin32" or $^O eq "cygwin" ) ? 1 : 0;
     if ($IS_WINDOWS) {
-      $serial = new Win32::SerialPort ($port, 1);
-    } else {
-      $serial = new Device::SerialPort ($port, 1);
+        $serial = new Win32::SerialPort( $port, 1 );
+    }
+    else {
+        $serial = new Device::SerialPort( $port, 1 );
     }
     croak("Can't open serial port $port: $^E\n") unless ($serial);
+
     # set serial parameters
     $serial->baudrate($baudrate);
     $serial->parity('none');
     $serial->datatype('raw');
     $serial->databits(8);
     $serial->stopbits(1);
-    $serial->buffers(4096,4096);
+    $serial->buffers( 4096, 4096 );
+
     # if not windows,
-    # attempt to make the serial port "raw", with no character 
+    # attempt to make the serial port "raw", with no character
     # translation
-    if ($^O ne "MSWin32") {
+    if ( $^O ne "MSWin32" ) {
         $serial->stty_echo(0);
         $serial->stty_echoe(0);
         $serial->stty_echonl(0);
@@ -267,86 +290,97 @@ sub _connect {
     }
     $serial->handshake('xoff');
     $serial->write_settings();
+
     # clear the line
     return $serial;
 }
+
 sub send {
-    my $this=shift;
-    my(%params)=@_;
-    if (!defined($params{device})) {
-            croak("Must supply the device name.");
-            return undef;
+    my $this = shift;
+    my (%params) = @_;
+    if ( !defined( $params{device} ) ) {
+        croak("Must supply the device name.");
+        return undef;
     }
     my $baudrate;
-    if (defined($params{baudrate})) {
+    if ( defined( $params{baudrate} ) ) {
         my @validrates = qw( 0 50 75 110 134 150 200 300 600
-                 1200 1800 2400 4800 9600 19200 38400 57600
+          1200 1800 2400 4800 9600 19200 38400 57600
           115200 230400 460800 500000 576000 921600 1000000
           1152000 2000000 2500000 3000000 3500000 4000000
         );
-        if (! grep {$_ eq $params{baudrate}} @validrates) {
-           croak('Invalid baudrate ['.$params{baudrate}.']');     
-        } else {
-            $baudrate=$params{baudrate};
+        if ( !grep { $_ eq $params{baudrate} } @validrates ) {
+            croak( 'Invalid baudrate [' . $params{baudrate} . ']' );
         }
-    } else {
-        $baudrate="9600";
+        else {
+            $baudrate = $params{baudrate};
+        }
+    }
+    else {
+        $baudrate = "9600";
     }
     my $serial;
-    if (defined $params{debug}) {
-        $serial=LedSign::BB::SerialTest->new();
-    } else {
-        $serial=$this->_connect(
-            device => $params{device},
+    if ( defined $params{debug} ) {
+        $serial = LedSign::BB::SerialTest->new();
+    }
+    else {
+        $serial = $this->_connect(
+            device   => $params{device},
             baudrate => $baudrate
         );
     }
+
     # send an initial null, wakes up the sign
-    my $count=0;
-    foreach my $obj (@{$this->_factory->objects}) {
+    my $count = 0;
+    foreach my $obj ( @{ $this->_factory->objects } ) {
         $count++;
-        my $objtype=$obj->{'objtype'};
+        my $objtype = $obj->{'objtype'};
+
         #
         # note that this could be a msg object, or a command object.
         # both have an encode method
         #
-        my @packets=$obj->encode();
-        $serial->read_const_time(1000);  
-        $serial->read_char_time(100);    
+        my @packets = $obj->encode();
+        $serial->read_const_time(1000);
+        $serial->read_char_time(100);
         $serial->write_settings();
-        my $count=0;
+        my $count = 0;
         foreach my $data (@packets) {
             $count++;
-            my $count=$serial->write($data);
-            if ($^O eq "MSWin32") {
+            my $count = $serial->write($data);
+            if ( $^O eq "MSWin32" ) {
                 $serial->write_done;
-            } else {
+            }
+            else {
                 $serial->write_drain;
             }
-            if ($count != length($data)) {
+            if ( $count != length($data) ) {
                 carp("Serial write error, [$count] bytes written, error [$^E]");
             }
+
             # wait up to 1 second for the initial ack
             $serial->read_const_time("1000");
-            my $ack=$serial->read(1);
-            if (ord($ack) ne 0x04) {
+            my $ack = $serial->read(1);
+            if ( ord($ack) ne 0x04 ) {
                 carp("Initial serial ACK from sign corrupted");
             }
+
             #
             #
-            my $wait=$obj->getwait;
+            my $wait = $obj->getwait;
             $serial->read_const_time($wait);
             $serial->write_settings();
-            my $eot=$serial->read(1);
-            if (ord($eot) ne 0x01) {
+            my $eot = $serial->read(1);
+            if ( ord($eot) ne 0x01 ) {
                 carp("Final serial ACK from sign corrupted");
             }
             $serial->purge_all;
+
             # sleep for 8/10 of a second
-            select(undef,undef,undef,0.8);
+            select( undef, undef, undef, 0.8 );
         }
     }
-    if (defined $params{debug}) {
+    if ( defined $params{debug} ) {
         return $serial->dump();
     }
 }
@@ -354,42 +388,48 @@ sub send {
 package LedSign::BB::Factory;
 use base qw (LedSign::Factory);
 our @CARP_NOT = qw(LedSign::BB);
+
 sub _init {
     my $this = shift;
-    my(%params)=@_;
-    foreach my $key (keys(%params)) {
-        $this->{$key}=$params{$key};
+    my (%params) = @_;
+    foreach my $key ( keys(%params) ) {
+        $this->{$key} = $params{$key};
     }
-    $this->{count}=0;
+    $this->{count} = 0;
     return $this;
 }
+
 sub msg {
-    my $this=shift;
-    my(%params) = @_;
-    my $msg=LedSign::BB::Msg->new(%params, factory => $this);
-    push(@{$this->{objects}},$msg);
+    my $this     = shift;
+    my (%params) = @_;
+    my $msg      = LedSign::BB::Msg->new( %params, factory => $this );
+    push( @{ $this->{objects} }, $msg );
     $this->{count}++;
-    my $count=$this->{count};
+    my $count = $this->{count};
     return $msg;
 }
+
 sub control {
-    my $this=shift;
-    my(%params) = @_;
-    my $obj=LedSign::BB::Config->new(%params, factory => $this);
-    push(@{$this->{objects}},$obj);
+    my $this     = shift;
+    my (%params) = @_;
+    my $obj      = LedSign::BB::Config->new( %params, factory => $this );
+    push( @{ $this->{objects} }, $obj );
     $this->{count}++;
-    my $count=$this->{count};
+    my $count = $this->{count};
     return $count;
 }
+
 sub count {
-    my $this=shift;
-    my $count=$this->{count};
+    my $this  = shift;
+    my $count = $this->{count};
     return $this->{count};
 }
+
 sub objects {
-    my $this=shift;
+    my $this = shift;
     return $this->{objects};
 }
+
 #
 # Superclass for Msg and Config, basically "things" that you send to the send
 #
@@ -397,47 +437,56 @@ sub objects {
 #   Control is things like adjusting the brightness or doing a soft reset
 #
 package LedSign::BB::Command;
+
 sub new {
-    my $that  = shift;
-    my $class = ref($that) || $that;
-    my(%params) = @_;
-    my $this = {};
+    my $that     = shift;
+    my $class    = ref($that) || $that;
+    my (%params) = @_;
+    my $this     = {};
     bless $this, $class;
-    foreach my $key (keys(%params)) {
-        $this->{$key}=$params{$key};
+    foreach my $key ( keys(%params) ) {
+        $this->{$key} = $params{$key};
     }
     $this->setwait(2000);
     return $this;
 }
+
 sub setwait {
-    my $this=shift;
-    my $wait=shift; 
-    $this->{wait}=$wait;
+    my $this = shift;
+    my $wait = shift;
+    $this->{wait} = $wait;
 }
+
 sub getwait {
-    my $this=shift;
+    my $this = shift;
     return $this->{wait};
 }
+
 sub factory {
     my $this = shift;
     return $this->{factory};
 }
+
 sub checksum {
-     my $this = shift;
-     my $data=shift;
-     my $checksum;
-     foreach my $char (split(//,$data)) {
-       $checksum += ord($char);
-     }
-     $checksum = sprintf("%04X",$checksum);
-     return $checksum;
+    my $this = shift;
+    my $data = shift;
+    my $checksum;
+    foreach my $char ( split( //, $data ) ) {
+        $checksum += ord($char);
+    }
+    $checksum = sprintf( "%04X", $checksum );
+    return $checksum;
 }
+
 sub header {
-    my $this= shift;
+    my $this = shift;
+
     # 5 null bytes for the header;
-    my $header=pack("C*",(0x00,0x00,0x00,0x00,0x00));
+    my $header = pack( "C*", ( 0x00, 0x00, 0x00, 0x00, 0x00 ) );
+
     # start command
-    $header .= pack("C",0x01);
+    $header .= pack( "C", 0x01 );
+
     # pc addr (first two bytes) + sign address (next two bytes)
     # hardcoding to FF00 for now
     $header .= 'FF00';
@@ -445,203 +494,249 @@ sub header {
 }
 
 sub encode {
-    my $this = shift;
-    my $objtype=$this->{'objtype'};
-    my $header=$this->header;
+    my $this    = shift;
+    my $objtype = $this->{'objtype'};
+    my $header  = $this->header;
     my $msg;
+
     # STX
-    $msg=pack("C",0x02);
-    my $msgdata='';
-    if ($objtype eq "msg") {
-        $msgdata=$this->processTags();
-        # replace newlines or carriage return, or cr/lf with sign's linefeed char
-        $msgdata =~ s#\r\n#\x7f#g;$msgdata =~ s#\r#\x7f#g;$msgdata =~ s#\n#\x7f#g;
+    $msg = pack( "C", 0x02 );
+    my $msgdata = '';
+    if ( $objtype eq "msg" ) {
+        $msgdata = $this->processTags();
+
+       # replace newlines or carriage return, or cr/lf with sign's linefeed char
+        $msgdata =~ s#\r\n#\x7f#g;
+        $msgdata =~ s#\r#\x7f#g;
+        $msgdata =~ s#\n#\x7f#g;
+
         #
         # if they specified a default font for the message, prepend the font
         # tag to the message data
         #
-        if (exists($this->{color})) {
-            my $colortag= pack("C",0xfd) . $LedSign::BB::COLORMAP{$this->{color}};
-            $msgdata=$colortag . $msgdata;
+        if ( exists( $this->{color} ) ) {
+            my $colortag =
+              pack( "C", 0xfd ) . $LedSign::BB::COLORMAP{ $this->{color} };
+            $msgdata = $colortag . $msgdata;
         }
-        if (exists($this->{font})) {
-            my $fonttag= pack("C",0xfe) . $LedSign::BB::FONTMAP{$this->{font}};
-            $msgdata=$fonttag . $msgdata;
+        if ( exists( $this->{font} ) ) {
+            my $fonttag =
+              pack( "C", 0xfe ) . $LedSign::BB::FONTMAP{ $this->{font} };
+            $msgdata = $fonttag . $msgdata;
         }
-        
+
         #
         # display mode
         # A= TEXT, C = VARIABLE, E = GRAPHIC, W = WRITE SPECIAL, R= READ SPECIAL
         $msg .= 'A';
+
         # message slot (valid slots are 0..9 and A..Z, 36 slots total);
-        $msg   .= $this->{slot};
+        $msg .= $this->{slot};
+
         # effect
-        my $effect=$LedSign::BB::EFFECTMAP{$this->{effect}};
-        if (! $effect ) {
-            $effect=$EFFECTMAP{AUTO};
-        } 
+        my $effect = $LedSign::BB::EFFECTMAP{ $this->{effect} };
+        if ( !$effect ) {
+            $effect = $EFFECTMAP{AUTO};
+        }
         $msg .= $effect;
+
         # speed, pause time
-        $msg .= $this->{speed};$msg .= $this->{pause};
+        $msg .= $this->{speed};
+        $msg .= $this->{pause};
+
         # dates and times
-        my $rundays = sprintf('%02X', oct("0b$this->{rundays}"));
+        my $rundays = sprintf( '%02X', oct("0b$this->{rundays}") );
         $msg .= $rundays;
         $msg .= $this->{start};
         $msg .= $this->{stop};
+
         # placeholder
         $msg .= '000';
+
         # alignment (left,center,right);
-        $msg .= $LedSign::BB::ALIGNMAP{$this->{align}};
-    } elsif ($objtype eq "config") {
+        $msg .= $LedSign::BB::ALIGNMAP{ $this->{align} };
+    }
+    elsif ( $objtype eq "config" ) {
         $msg .= "W";
-        my $setting=$this->{setting};
-        my $value=$this->{value};
-        if ($setting eq "reset") {
-           $msg .= "B";
+        my $setting = $this->{setting};
+        my $value   = $this->{value};
+        if ( $setting eq "reset" ) {
+            $msg .= "B";
         }
-        if ($setting eq "cleardata") {
-           #
-           # the cleardata command takes 30 seconds to send back an ack
-           # so, we'll set the wait time to a higher value
-           #
-           $this->setwait("35000");
-           $msg .= "L";
+        if ( $setting eq "cleardata" ) {
+
+            #
+            # the cleardata command takes 30 seconds to send back an ack
+            # so, we'll set the wait time to a higher value
+            #
+            $this->setwait("35000");
+            $msg .= "L";
         }
-        if ($setting eq "brightness") {
-           $msg .= "P" . $value;
+        if ( $setting eq "brightness" ) {
+            $msg .= "P" . $value;
         }
-        if ($setting eq "settime") {
-           if ($value eq "now") {
-               $msg .= "A".POSIX::strftime("%Y%m%d%H%M%S%w",localtime(time));
-           } else {
-               $msg .= "A".POSIX::strftime("%Y%m%d%H%M%S%w",localtime($value));
-           }
+        if ( $setting eq "settime" ) {
+            if ( $value eq "now" ) {
+                $msg .=
+                  "A" . POSIX::strftime( "%Y%m%d%H%M%S%w", localtime(time) );
+            }
+            else {
+                $msg .=
+                  "A" . POSIX::strftime( "%Y%m%d%H%M%S%w", localtime($value) );
+            }
         }
-        if ($setting eq "signmode") {
-           if ($value eq "basic") {
-               $msg .= "Y" . "1";
-           } elsif ($value eq "expand") {
-               $msg .= "Y" . "0";
-           }
+        if ( $setting eq "signmode" ) {
+            if ( $value eq "basic" ) {
+                $msg .= "Y" . "1";
+            }
+            elsif ( $value eq "expand" ) {
+                $msg .= "Y" . "0";
+            }
         }
-        if ($setting eq "displaymode") {
-           if ($value eq "allslots") {
-               $msg .= "F" . "A";
-           } elsif ($value eq "bytime") {
-               $msg .= "F" . "T";
-           }
+        if ( $setting eq "displaymode" ) {
+            if ( $value eq "allslots" ) {
+                $msg .= "F" . "A";
+            }
+            elsif ( $value eq "bytime" ) {
+                $msg .= "F" . "T";
+            }
         }
     }
     $msg .= $msgdata;
+
     # End of Text - ETX
-    $msg .= pack("C",0x03);
+    $msg .= pack( "C", 0x03 );
+
     # Supposed to be a checksum - sign seems to ignore it though.
-    my $checksum=$this->checksum($msg);
+    my $checksum = $this->checksum($msg);
+
     # EOT - End of Transmission
-    my $trailer = pack("C",0x04);
+    my $trailer = pack( "C", 0x04 );
     my @encoded;
-    push(@encoded,$header . $msg . $checksum . $trailer);
+    push( @encoded, $header . $msg . $checksum . $trailer );
     return @encoded;
 }
+
 #
 # object to hold a control command and it's associated data and parameters
-#   control commands are things like "soft reset" or "adjust brightness" 
+#   control commands are things like "soft reset" or "adjust brightness"
 #   that are sent to the sign
 #
 package LedSign::BB::Config;
 our @CARP_NOT = qw(LedSign::BB);
-our @ISA= qw (LedSign::BB::Command);
+our @ISA      = qw (LedSign::BB::Command);
+
 sub new {
     my $that  = shift;
     my $class = ref($that) || $that;
-    my $this = LedSign::BB::Command->new(@_);
-    $this->{'objtype'}='config';
-    return (bless($this,$class));
+    my $this  = LedSign::BB::Command->new(@_);
+    $this->{'objtype'} = 'config';
+    return ( bless( $this, $class ) );
 }
+
 #
 # object to hold a message and it's associated data and parameters
-# 
+#
 package LedSign::BB::Msg;
 our @CARP_NOT = qw(LedSign::BB);
-our @ISA= qw (LedSign::BB::Command);
+our @ISA      = qw (LedSign::BB::Command);
+
 sub new {
     my $that  = shift;
     my $class = ref($that) || $that;
-    my $this = LedSign::BB::Command->new(@_);
-    $this->{'objtype'}='msg';
-    return (bless($this,$class));
+    my $this  = LedSign::BB::Command->new(@_);
+    $this->{'objtype'} = 'msg';
+    return ( bless( $this, $class ) );
 }
+
 sub processTags {
-    my $this = shift;
-    my $msgdata=$this->{data};
+    my $this    = shift;
+    my $msgdata = $this->{data};
+
     # font tags
     # font
-    my $fontctl=pack("C",0xfe);
-    while ($msgdata =~ /(<f:([^>]+)>)/gi) {
-        my $fonttag=$1; my $font=$2; my $substitute;
-        if (exists($FONTMAP{$font})) {
-           $substitute=$fontctl . $LedSign::BB::FONTMAP{$font};
-        } else {
-           $substitute='';
+    my $fontctl = pack( "C", 0xfe );
+    while ( $msgdata =~ /(<f:([^>]+)>)/gi ) {
+        my $fonttag = $1;
+        my $font    = $2;
+        my $substitute;
+        if ( exists( $FONTMAP{$font} ) ) {
+            $substitute = $fontctl . $LedSign::BB::FONTMAP{$font};
         }
-        $msgdata=~s/$fonttag/$substitute/;
+        else {
+            $substitute = '';
+        }
+        $msgdata =~ s/$fonttag/$substitute/;
     }
+
     # color
-    my $colorctl=pack("C",0xfd);
-    while ($msgdata =~ /(<c:([^>]+)>)/gi) {
-        my $colortag=$1; my $color=$2; my $substitute;
-        if (exists($COLORMAP{$color})) {
-           $substitute=$colorctl . $LedSign::BB::COLORMAP{$color};
-        } else {
-           $substitute='';
+    my $colorctl = pack( "C", 0xfd );
+    while ( $msgdata =~ /(<c:([^>]+)>)/gi ) {
+        my $colortag = $1;
+        my $color    = $2;
+        my $substitute;
+        if ( exists( $COLORMAP{$color} ) ) {
+            $substitute = $colorctl . $LedSign::BB::COLORMAP{$color};
         }
-        $msgdata=~s/$colortag/$substitute/;
-    }
-    my $timectl=pack("C",0xfa);
-    while ($msgdata =~ /(<t:([^>]+)>)/gi) {
-        my $timetag=$1; my $time=$2; my $substitute;
-        if ($time =~ /^[A-J]$/)  {
-           $substitute=$timectl . $time
-        } else {
-           $substitute='[INVALID TIME TAG]';
+        else {
+            $substitute = '';
         }
-        $msgdata=~s/$timetag/$substitute/;
+        $msgdata =~ s/$colortag/$substitute/;
     }
+    my $timectl = pack( "C", 0xfa );
+    while ( $msgdata =~ /(<t:([^>]+)>)/gi ) {
+        my $timetag = $1;
+        my $time    = $2;
+        my $substitute;
+        if ( $time =~ /^[A-J]$/ ) {
+            $substitute = $timectl . $time;
+        }
+        else {
+            $substitute = '[INVALID TIME TAG]';
+        }
+        $msgdata =~ s/$timetag/$substitute/;
+    }
+
     # time / date
-    $this->{data}=$msgdata;
+    $this->{data} = $msgdata;
     return $msgdata;
 }
+
 #
 # For Internal Testing
 #
 package LedSign::BB::SerialTest;
+
 sub new {
-    my $that  = shift;
-    my $class = ref($that) || $that;
-    my(%params) = @_;
-    my $this = {};
+    my $that     = shift;
+    my $class    = ref($that) || $that;
+    my (%params) = @_;
+    my $this     = {};
     bless $this, $class;
-    $this->{data}='';
+    $this->{data} = '';
     return $this;
 }
+
 sub connect {
-    my $this=shift;
-    $this->{data}='';
+    my $this = shift;
+    $this->{data} = '';
 }
+
 sub write {
-    my $this=shift;
+    my $this = shift;
     for (@_) {
-       $this->{data}.=$_;
+        $this->{data} .= $_;
     }
 }
+
 sub dump {
-    my $this=shift;
-    my $data=$this->{data};
+    my $this = shift;
+    my $data = $this->{data};
     return $data;
 }
 
-
 1;
+
 =head1 NAME
 
 LedSign::BB - send text and graphics to led signs 
@@ -1041,5 +1136,4 @@ MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 
 =cut
-
 

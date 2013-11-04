@@ -26,9 +26,14 @@ sub new {
     my(%params) = @_;
     my $this = {};
     bless $this, $class;
-    $this->{tags}=();
     $this->_init(%params);
+    $this->flush();
     return $this;
+}
+sub flush {
+    my $this=shift; 
+    $this->{tags}=();
+    $this->_flush;
 }
 sub _connect {
     my $this=shift;
@@ -36,6 +41,25 @@ sub _connect {
     my $serial;
     my $port=$params{device};
     my $baudrate=$params{baudrate};
+    if ( defined( $params{baudrate} ) ) {
+        $baudrate=$this->checkbaudrate( $params{baudrate} );
+    } else {
+        $baudrate = $this->DEFAULTSERIAL()->{baudrate};
+    }
+    my $packetdelay;
+    if ( defined( $params{packetdelay} ) ) {
+        if ( $params{packetdelay} =~ m#^\d*\.{0,1}\d*$# ) {
+            $packetdelay = $params{packetdelay};
+        }
+        else {
+            croak(  'Invalid value ['
+                  . $params{packetdelay}
+                  . '] for parameter packetdelay' );
+        }
+    } else {
+        $packetdelay = $this->DEFAULTSERIAL()->{packetdelay};
+    }
+
     my $IS_WINDOWS = ($^O eq "MSWin32" or $^O eq "cygwin") ? 1 : 0;
     if ($IS_WINDOWS) {
       $serial = new Win32::SerialPort ($port, 1);
@@ -54,7 +78,7 @@ sub _connect {
 }
 sub initslots {
     my $this=shift;
-    my @slotrange=@_;
+    my @slotrange=$this->SLOTRANGE();
     @{$this->{slotrange}}=@slotrange;
     @{$this->{freeslots}}=@slotrange;
     $this->{usedslots}=();
@@ -146,5 +170,10 @@ sub objects {
         return ();
     }
     return(@{$this->{objects}{$objtype}});
+}
+sub clear {
+   my $this=shift;
+   $this->{objects}=();
+   $this->_clear;
 }
 1;
