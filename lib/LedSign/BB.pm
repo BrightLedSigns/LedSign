@@ -9,7 +9,7 @@ use POSIX qw(strftime);
 #
 # Shared Constants / Globals
 #
-our @SLOTRANGE = ( 0 .. 9, 'A' .. 'Y' );
+use constant SLOTRANGE => ( 0 .. 9, 'A' .. 'Y' );
 
 #
 # Selectively use Win32::Serial port if Windows OS detected,
@@ -68,7 +68,7 @@ sub _init {
     my (%params) = @_;
     $this->{device}   = $params{device};
     $this->{refcount} = 0;
-    $this->initslots(@SLOTRANGE);
+    $this->initslots(SLOTRANGE);
     $this->{factory} = LedSign::BB::Factory->new();
     return $this;
 }
@@ -78,7 +78,7 @@ sub _factory {
     return $this->{factory};
 }
 
-sub addCfg {
+sub queueCfg {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{setting} ) ) {
@@ -118,14 +118,14 @@ sub addCfg {
         if ( !exists( $params{value} ) ) {
             croak("No value parameter specified for displaymode setting");
         }
-        if ( $params{value} !~ /^(allslots|bytime)$/ ) {
+        if ( $params{value} !~ /^(allslots|bytime|test)$/ ) {
             croak("Brightness value must be either allslots or bytime");
         }
     }
     my $cobj = $this->_factory->control( %params, );
 }
 
-sub addMsg {
+sub queueMsg {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{data} ) ) {
@@ -295,7 +295,7 @@ sub _connect {
     return $serial;
 }
 
-sub send {
+sub sendQueue {
     my $this = shift;
     my (%params) = @_;
     if ( !defined( $params{device} ) ) {
@@ -332,7 +332,7 @@ sub send {
 
     # send an initial null, wakes up the sign
     my $count = 0;
-    foreach my $obj ( @{ $this->_factory->objects } ) {
+    foreach my $obj ( @{ $this->_factory->objects() } ) {
         $count++;
         my $objtype = $obj->{'objtype'};
 
@@ -396,6 +396,7 @@ sub _init {
         $this->{$key} = $params{$key};
     }
     $this->{count} = 0;
+    $this->{objects}=();
     return $this;
 }
 
@@ -427,7 +428,11 @@ sub count {
 
 sub objects {
     my $this = shift;
-    return $this->{objects};
+    if (defined($this->{objects})) {
+        return $this->{objects};
+    } else {
+        return ();
+    }
 }
 
 #
@@ -599,6 +604,10 @@ sub encode {
             }
             elsif ( $value eq "bytime" ) {
                 $msg .= "F" . "T";
+            } elsif ($value eq "test") {
+                print "displaymode is test...";
+                $msg .= "F" . "F1";
+                #$msg .= "F" . "A";
             }
         }
     }
@@ -754,13 +763,13 @@ Version 0.92
   #   connected to COM3 (windows)
   #
   my $sign=LedSign::BB->new();
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message One"
   );
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message Two"
   );
-  $sign->send(device => "COM3");
+  $sign->sendQueue(device => "COM3");
 
   #!/usr/bin/perl
   #
@@ -772,11 +781,11 @@ Version 0.92
   #
   use LedSign::BB;
   my $sign=LedSign::BB->new();
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "brightness",
       value => 1
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
  
 
 =head1 DESCRIPTION
@@ -791,11 +800,11 @@ LedSign::BB is used to send text and graphics via RS232 to a specific set of pro
 
 =head1 METHODS
 
-=head2 $sign->addMsg
+=head2 $sign->queueMsg
 
-Adds a text messsage to display on the sign.  The $sign->addMsg method has only one required argument...data, which is the text to display on the sign. 
+Adds a text messsage to display on the sign.  The $sign->queueMsg method has only one required argument...data, which is the text to display on the sign. 
 
-Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->addMsg" >> and L<< /"$sign->addCfg" >> methods.
+Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->queueMsg" >> and L<< /"$sign->queueCfg" >> methods.
 
 =over 4
 
@@ -804,7 +813,7 @@ Note that this message isn't sent to the sign until you call the L<< /"$sign->se
 The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
   
   # font, color, and time tag example
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
   ) 
   # valid values for time tags
@@ -818,7 +827,7 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
 Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
 
   # two lines of text, assuming the sign is at least 16 pixels high
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "<f:SS7>This is line 1\nThis is line2",
       align => "LEFT"
   );
@@ -920,24 +929,24 @@ This behavior may be useful to some people that want to, for example, keep a con
   # 
   #
   my $sign=LedSign::BB->new();
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message Two",
       slot => 3
   );
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message One",
       slot => 4
   );
   #
   #
-  $sign->send(device => "COM3");
+  $sign->sendQueue(device => "COM3");
 
 
 =back
 
 
 
-=head2 $sign->addCfg
+=head2 $sign->queueCfg
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
@@ -952,11 +961,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  value is mandatory can be 1 to 8, with 1 being the brightest,
   #    or, you can supply A as brightness, and it will adjust automatically
   #
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "brightness",
       value => 1
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =item B<reset>
 
@@ -964,10 +973,10 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # does a soft reset on the sign
   #   data is not erased
   #
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "reset",
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =item B<cleardata>
 
@@ -976,10 +985,10 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  note: this command takes 30 seconds or so to process, during
   #        which time, the send method will block waiting on a response
   #  
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "cleardata",
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 
 =item B<setttime>
@@ -993,11 +1002,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # as unix epoch seconds.  The perl "time" function, for example, returns
   # this type of value
   #
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "settime",
       value => "now"
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 
 =item B<signmode>
@@ -1013,7 +1022,7 @@ Valid values: basic, expand
   #
   # example of setting sign to expand mode
   #
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "signmode",
       value => "expand"
   );
@@ -1031,7 +1040,7 @@ Valid values: allslots, bytime
   #
   # example of setting displaymode to allslots
   #
-  $sign->addCfg(
+  $sign->queueCfg(
       setting => "displaymode",
       value => "allslots"
   );
@@ -1042,7 +1051,7 @@ Valid values: allslots, bytime
 
 =head2 $sign->send
 
-The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->addMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
+The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
 
 It supports one optional argument: baudrate
 
@@ -1054,15 +1063,15 @@ B<baudrate>: defaults to 9600, no real reason to use something other than the de
 =back
 
   # typical use on a windows machine
-  $sign->send(
+  $sign->sendQueue(
       device => "COM4"
   );
   # typical use on a unix/linux machine
-  $sign->send(
+  $sign->sendQueue(
       device => "/dev/ttyUSB0"
   );
   # using optional argument, set baudrate to 2400
-  $sign->send(
+  $sign->sendQueue(
       device => "COM8",
       baudrate => "2400"
   );
@@ -1070,9 +1079,9 @@ B<baudrate>: defaults to 9600, no real reason to use something other than the de
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
   # send to the first sign
-  $sign->send(device => "COM4");
+  $sign->sendQueue(device => "COM4");
   # send to another sign
-  $sign->send(device => "COM6");
+  $sign->sendQueue(device => "COM6");
 
 =head1 AUTHOR
 

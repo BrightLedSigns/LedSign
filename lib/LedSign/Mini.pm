@@ -40,19 +40,23 @@ sub _init {
     $this->{can_image}  = 1;
     $this->{device}     = $params{device};
     $this->{devicetype} = $params{devicetype};
+    $this->{msgcount} = 0;
     $this->{factory}    = LedSign::Mini::Factory->new();
+    $this->initslots();
     return $this;
 }
 
 sub _flush {
     my $this = shift;
+    print "_flush called\n";
     $this->{msgcount} = 0;
-    $this->_factory->clear();
     $this->initslots();
+    $this->{factory}    = LedSign::Mini::Factory->new();
 }
 
 sub _factory {
     my $this = shift;
+    print "_factory has been called!\n";
     return $this->{factory};
 }
 
@@ -111,7 +115,7 @@ sub queueIcon {
 sub queueMsg {
     my $this = shift;
     my (%params) = @_;
-
+    print "queueMsg called\n";
     # validate parameters
     my $maxmsgs = scalar(SLOTRANGE());
     if ( $this->{msgcount} >= $maxmsgs ) {
@@ -185,7 +189,6 @@ sub getshowbits {
     }
     my $total = 0;
     foreach my $num (@slots) {
-        print "num is $num\n";
         $total += $BITVAL{$num};
     }
     print "total is [$total]\n";
@@ -227,7 +230,7 @@ sub sendQueue {
     if ( defined $params{debug} ) {
         $serial = Device::MiniLED::SerialTest->new();
     } else {
-        $serial = $this->_connect(
+        $serial = $this->connect(
             device   => $params{device},
             baudrate => $params{baudrate}
         );
@@ -249,9 +252,10 @@ sub sendQueue {
     $serial->write( pack( "C", 0x00 ) );
 
     # sleep a short while to avoid overrunning sign
-    select( undef, undef, undef, $packetdelay );
+    #select( undef, undef, undef, $packetdelay );
     my $count = 0;
     foreach my $msgobj ( $this->_factory->objects('msg') ) {
+        print "sending message\n";
         # get the data
         $count++;
         # process font and image tags first
@@ -346,7 +350,7 @@ sub sendRunSlots {
     if ( defined $params{debug} ) {
         $serial = Device::MiniLED::SerialTest->new();
     } else {
-        $serial = $this->_connect(
+        $serial = $this->connect(
             device   => $params{device},
             baudrate => $params{baudrate}
         );
@@ -357,14 +361,14 @@ sub sendRunSlots {
         select(undef,undef,undef,$packetdelay);
     } else {
         print "sending the nothing...\n";
-        my $nothing=pack( "C*", ( 0x02, 0x32, 0x01) );
+        my $nothing=pack( "C*", (0x02,0x33,0x00,0x00));
         $serial->write($nothing);
-        select(undef,undef,undef,$packetdelay);
+        #select(undef,undef,undef,$packetdelay);
     }
 }
 sub packets {
     my $this   = shift;
-    my $blob   = join( '', @{ $this->_factory->{chunks} } );
+    my $blob   = join( '', @{ $this->_factory()->{chunks} } );
     my $length = length($blob);
 
     # pad out to an even multiple of 64 bytes
@@ -445,14 +449,10 @@ sub _init {
     foreach my $key ( keys(%params) ) {
         $this->{$key} = $params{$key};
     }
+    $this->{chunkcount}=0;
+    $this->{chunkcache}={};
+    $this->{chunks}= [];
     return $this;
-}
-
-sub _clear {
-    my $this = shift;
-    $this->{chunkcount} = 0;
-    $this->{chunkcache} = {};
-    $this->{chunks}     = [];
 }
 
 sub msg {

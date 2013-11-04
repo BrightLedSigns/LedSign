@@ -27,15 +27,15 @@ sub new {
     my $this = {};
     bless $this, $class;
     $this->_init(%params);
-    $this->flush();
+    $this->{tags}=();
     return $this;
 }
 sub flush {
     my $this=shift; 
     $this->{tags}=();
-    $this->_flush;
+    $this->_flush();
 }
-sub _connect {
+sub connect {
     my $this=shift;
     my(%params)=@_;
     my $serial;
@@ -170,10 +170,5 @@ sub objects {
         return ();
     }
     return(@{$this->{objects}{$objtype}});
-}
-sub clear {
-   my $this=shift;
-   $this->{objects}=();
-   $this->_clear;
 }
 1;
