@@ -9,7 +9,7 @@ use POSIX qw(strftime);
 #
 # Shared Constants / Globals
 #
-our @SLOTRANGE = map { sprintf( '%02d', $_ ) } ( 1 .. 99 );
+use constant SLOTRANGE => map { sprintf( '%02d', $_ ) } ( 1 .. 99 );
 
 #
 # Selectively use Win32::Serial port if Windows OS detected,
@@ -32,7 +32,7 @@ BEGIN {
 #
 # Shared Constants / Globals
 #
-our %EFFECTMAP = (
+use constant EFFECTMAP => {
     'DEFAULT'         => 'A', 'AUTO'            => 'A',
     'CYCLIC'          => 'A', 'IMMEDIATE'       => 'B',
     'OPENFROMRIGHT'   => 'C', 'OPENFROMLEFT'    => 'D',
@@ -46,16 +46,16 @@ our %EFFECTMAP = (
     'PACMAN'          => 'S', 'STACK'           => 'T',
     'SHOOT'           => 'U', 'FLASH'           => 'V',
     'RANDOM'          => 'W', 'SLIDEIN'         => 'X',
-);
+};
 
-our %FONTMAP = (
+use constant FONTMAP => {
     'DEFAULT'   => '\s', '7X6'       => '\s',
     'SHORT'     => '\q', 'SHORTWIDE' => '\r',
     'WIDE'      => '\t', '7X9'       => '\u',
     'EXTRAWIDE' => '\v', 'SMALL'     => '\w'
-);
+};
 
-our %COLORMAP = (
+use constant COLORMAP => {
     'DEFAULT'        => '\b', 'RED'            => '\a',
     'BRIGHTRED'      => '\b', 'ORANGE'         => '\c',
     'BRIGHTORANGE'   => '\d', 'YELLOW'         => '\e',
@@ -65,28 +65,29 @@ our %COLORMAP = (
     'SAWTOOTHMIX'    => '\l', 'GREENONRED'     => '\m',
     'REDONGREEN'     => '\n', 'ORANGEONRED'    => '\o',
     'YELLOWONGREEN'  => '\p'
-);
+};
 
-our %SPMAP = (
+use constant SPMAP => {
     'DEFAULT' => '\Y5', '0'       => '\Y1',
     '1'       => '\Y2', '2'       => '\Y3',
     '3'       => '\Y4', '4'       => '\Y5',
     '5'       => '\Y6', '6'       => '\Y7',
     '7'       => '\Y8'
-);
+};
 
-our %PAUSEMAP = (
+use constant PAUSEMAP => {
     '1' => '\Z1', '2' => '\Z2',
     '3' => '\Z3', '4' => '\Z4',
     '4' => '\Z5', '5' => '\Z6',
     '6' => '\Z7', '7' => '\Z8'
-);
-our %TDMAP = (
+};
+
+use constant TDMAP => {
     'DATE1' => '^A', 'DATE2' => '^B',
     'DATE3' => '^C', 'DATE4' => '^a',
     'TIME1' => '^D', 'TIME2' => '^E',
     'TIME3' => '^F'
-);
+};
 
 sub _init {
     my $this = shift;
@@ -94,7 +95,6 @@ sub _init {
     $this->{device}   = $params{device};
     $this->{refcount} = 0;
     $this->{factory}  = LedSign::M500::Factory->new();
-    $this->initslots(@SLOTRANGE);
     return $this;
 }
 
@@ -103,7 +103,7 @@ sub _factory {
     return $this->{factory};
 }
 
-sub addCfg {
+sub sendCmd {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{setting} ) ) {
@@ -135,7 +135,7 @@ sub addCfg {
     my $cobj = $this->_factory->control( %params, );
 }
 
-sub addMsg {
+sub queueMsg {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{data} ) ) {
@@ -302,7 +302,7 @@ sub _connect {
     return $serial;
 }
 
-sub send {
+sub sendQueue {
     my $this = shift;
     my (%params) = @_;
     if ( !defined( $params{device} ) ) {
@@ -397,9 +397,8 @@ sub send {
                 push( @slots, $one );
             }
         }
-    }
-    else {
-        @slots = @{ $this->{usedslots} };
+    } else {
+        @slots = @{$this->{'usedslots'}};
     }
     if ( length(@slots) > 0 ) {
         my $slotlist = join( '', @slots );
@@ -543,39 +542,38 @@ sub encode {
         $msg .= '~f' . $this->{slot};
 
         # effect
-        my $effect = $LedSign::M500::EFFECTMAP{ $this->{effect} };
+        my $effect = LedSign::M500::EFFECTMAP->{ $this->{effect} };
         if ( !$effect ) {
-            $effect = $EFFECTMAP{'AUTO'};
+            $effect = LedSign::M500::EFFECTMAP()->{'AUTO'};
         }
         $msg .= $effect;
         my $color;
         if ( exists( $this->{color} ) ) {
-            $color = $LedSign::M500::COLORMAP{ $this->{color} };
+            $color = LedSign::M500::COLORMAP->{ $this->{color} };
         }
         else {
-            $color = $LedSign::M500::COLORMAP{'BRIGHTRED'};
+            $color = LedSign::M500::COLORMAP->{'BRIGHTRED'};
         }
         $msg .= $color;
         my $font;
         if ( exists( $this->{font} ) ) {
-            $font = $LedSign::M500::FONTMAP{ $this->{font} };
+            $font = LedSign::M500::FONTMAP->{ $this->{font} };
         }
         else {
-            $font = $LedSign::M500::FONTMAP{'DEFAULT'};
+            $font = LedSign::M500::FONTMAP->{'DEFAULT'};
         }
         $msg .= $font;
         if ( exists( $this->{speed} ) ) {
-            my $speed = $LedSign::M500::SPMAP{ $this->{speed} };
+            my $speed = LedSign::M500::SPMAP->{ $this->{speed} };
             $msg .= $speed;
         }
         $msgdata = $this->processTags();
         if ( exists( $this->{pause} ) ) {
-            my $pause = $LedSign::M500::PAUSEMAP{ $this->{pause} };
+            my $pause = LedSign::M500::PAUSEMAP->{ $this->{pause} };
             $msg .= $pause;
         }
         $msgdata .= "\r\r\r";
-    }
-    elsif ( $objtype eq "config" ) {
+    } elsif ( $objtype eq "config" ) {
         $msg .= "~128";
         my $setting = $this->{setting};
         my $value   = $this->{value};
@@ -663,8 +661,8 @@ sub processTags {
         my $fonttag = $1;
         my $font    = $2;
         my $substitute;
-        if ( exists( $FONTMAP{$font} ) ) {
-            $substitute = $LedSign::M500::FONTMAP{$font};
+        if ( exists( $this->FONTMAP()->{$font} ) ) {
+            $substitute = $this->FONTMAP()->{$font};
         }
         else {
             $substitute = '';
@@ -677,8 +675,8 @@ sub processTags {
         my $colortag = $1;
         my $color    = $2;
         my $substitute;
-        if ( exists( $COLORMAP{$color} ) ) {
-            $substitute = $LedSign::M500::COLORMAP{$color};
+        if ( exists( $this->COLORMAP()->{$color} ) ) {
+            $substitute = $this->COLORMAP()->{$color};
         }
         else {
             $substitute = '';
@@ -691,8 +689,8 @@ sub processTags {
         my $effecttag = $1;
         my $effect    = $2;
         my $substitute;
-        if ( exists( $EFFECTMAP{$effect} ) ) {
-            $substitute = "\r" . $LedSign::M500::EFFECTMAP{$effect} . '\\c';
+        if ( exists( $this->EFFECTMAP()->{$effect} ) ) {
+            $substitute = "\r" . $this->EFFECTMAP()->{$effect} . '\\c';
         }
         else {
             $substitute = '';
@@ -705,8 +703,8 @@ sub processTags {
         my $speedtag = $1;
         my $speed    = $2;
         my $substitute;
-        if ( exists( $SPMAP{$speed} ) ) {
-            $substitute = $LedSign::M500::SPMAP{$speed};
+        if ( exists( $this->SPMAP()->{$speed} ) ) {
+            $substitute = $this->SPMAP()->{$speed};
         }
         else {
             $substitute = '';
@@ -719,8 +717,8 @@ sub processTags {
         my $pausetag = $1;
         my $pause    = $2;
         my $substitute;
-        if ( exists( $PAUSEMAP{$pause} ) ) {
-            $substitute = $LedSign::M500::PAUSEMAP{$pause};
+        if ( exists( $this->PAUSEMAP()->{$pause} ) ) {
+            $substitute = $this->PAUSEMAP()->{$pause};
         }
         else {
             $substitute = '';
@@ -731,8 +729,8 @@ sub processTags {
         my $timetag = $1;
         my $time    = $2;
         my $substitute;
-        if ( exists( $TDMAP{$time} ) ) {
-            $substitute = $LedSign::M500::TDMAP{$time};
+        if ( exists( $this->PAUSEMAP()->{$time} ) ) {
+            $substitute = $this->PAUSEMAP()->{$time};
         }
         else {
             $substitute = '[INVALID TIME TAG]';
@@ -797,13 +795,13 @@ Version 0.92
   #   connected to COM3 (windows)
   #
   my $sign=LedSign::M500->new();
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message One"
   );
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message Two"
   );
-  $sign->send(device => "COM3");
+  $sign->sendQueue(device => "COM3");
 
   #!/usr/bin/perl
   #
@@ -815,11 +813,11 @@ Version 0.92
   #
   use LedSign::M500;
   my $sign=LedSign::M500->new();
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "brightness",
       value => 1
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
  
 
 =head1 DESCRIPTION
@@ -834,11 +832,11 @@ LedSign::M500 is used to send text and graphics via RS232 to a specific set of p
 
 =head1 METHODS
 
-=head2 $sign->addMsg
+=head2 $sign->queueMsg
 
-Adds a text messsage to display on the sign.  The $sign->addMsg method has only one required argument...data, which is the text to display on the sign. 
+Adds a text messsage to display on the sign.  The $sign->queueMsg method has only one required argument...data, which is the text to display on the sign. 
 
-Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->addMsg" >> and L<< /"$sign->addCfg" >> methods.
+Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->queueMsg" >> and L<< /"$sign->sendCmd" >> methods.
 
 =over 4
 
@@ -847,7 +845,7 @@ Note that this message isn't sent to the sign until you call the L<< /"$sign->se
 The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
   
   # font, color, and time tag example
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
   ) 
   # valid values for time tags
@@ -861,7 +859,7 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
 Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
 
   # two lines of text, assuming the sign is at least 16 pixels high
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "<f:SS7>This is line 1\nThis is line2",
       align => "LEFT"
   );
@@ -964,17 +962,17 @@ This behavior may be useful to some people that want to, for example, keep a con
   #  Every time you use slot, all higher numbered slots are erased.
   #  So, because these are sent out of order, the message in slot 1 is erased
   my $sign=LedSign::M500->new();
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message Two",
       slot => 1
   );
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message One",
       slot => 0
   );
   #
   #
-  $sign->send(device => "COM3");
+  $sign->sendQueue(device => "COM3");
 
   #
   # example of using the slot parameter CORRECTLY
@@ -988,25 +986,25 @@ This behavior may be useful to some people that want to, for example, keep a con
   #   than 4 would have been erased 
   #
   my $sign=LedSign::M500->new();
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message Two",
       slot => 3
   );
-  $sign->addMsg(
+  $sign->queueMsg(
       data => "Message One",
       slot => 4
   );
 
   #
   #
-  $sign->send(device => "COM3");
+  $sign->sendQueue(device => "COM3");
 
 
 =back
 
 
 
-=head2 $sign->addCfg
+=head2 $sign->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
@@ -1021,11 +1019,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  value is mandatory can be 1 to 8, with 1 being the brightest,
   #    or, you can supply A as brightness, and it will adjust automatically
   #
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "brightness",
       value => 1
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =item B<reset>
 
@@ -1033,10 +1031,10 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # does a soft reset on the sign
   #   data is not erased
   #
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "reset",
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =item B<cleardata>
 
@@ -1045,10 +1043,10 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  note: this command takes 30 seconds or so to process, during
   #        which time, the send method will block waiting on a response
   #  
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "cleardata",
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 
 =item B<setttime>
@@ -1062,11 +1060,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # as unix epoch seconds.  The perl "time" function, for example, returns
   # this type of value
   #
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "settime",
       value => "now"
   );
-  $sign->send(device => "/dev/ttyUSB0");
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 
 =item B<signmode>
@@ -1082,7 +1080,7 @@ Valid values: basic, expand
   #
   # example of setting sign to expand mode
   #
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "signmode",
       value => "expand"
   );
@@ -1100,7 +1098,7 @@ Valid values: allslots, bytime
   #
   # example of setting displaymode to allslots
   #
-  $sign->addCfg(
+  $sign->sendCmd(
       setting => "displaymode",
       value => "allslots"
   );
@@ -1111,7 +1109,7 @@ Valid values: allslots, bytime
 
 =head2 $sign->send
 
-The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->addMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
+The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
 
 It supports one optional argument: baudrate
 
@@ -1123,15 +1121,15 @@ B<baudrate>: defaults to 9600, no real reason to use something other than the de
 =back
 
   # typical use on a windows machine
-  $sign->send(
+  $sign->sendQueue(
       device => "COM4"
   );
   # typical use on a unix/linux machine
-  $sign->send(
+  $sign->sendQueue(
       device => "/dev/ttyUSB0"
   );
   # using optional argument, set baudrate to 2400
-  $sign->send(
+  $sign->sendQueue(
       device => "COM8",
       baudrate => "2400"
   );
@@ -1139,9 +1137,9 @@ B<baudrate>: defaults to 9600, no real reason to use something other than the de
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
   # send to the first sign
-  $sign->send(device => "COM4");
+  $sign->sendQueue(device => "COM4");
   # send to another sign
-  $sign->send(device => "COM6");
+  $sign->sendQueue(device => "COM6");
 
 =head1 AUTHOR
 

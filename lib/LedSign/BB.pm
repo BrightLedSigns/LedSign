@@ -32,7 +32,7 @@ BEGIN {
 #
 # Shared Constants / Globals
 #
-our %EFFECTMAP = (
+use constant EFFECTMAP => {
     AUTO       => 'A', FLASH      => 'B', HOLD       => 'C',
     INTERLOCK  => 'D', ROLLDOWN   => 'E', ROLLUP     => 'F',
     ROLLIN     => 'G', ROLLOUT    => 'H', ROLLLEFT   => 'I',
@@ -42,8 +42,8 @@ our %EFFECTMAP = (
     WIPEDOWN   => 'S', WIPEUP     => 'T', WIPEIN     => 'U',
     WIPEOUT    => 'V', WIPELEFT   => 'W', WIPERIGHT  => 'X',
     CYCLECOLOR => 'Y', CLOCK      => 'Z'
-);
-our %FONTMAP = (
+};
+use constant FONTMAP => {
     SS5   => 'A', ST5   => 'B', WD5   => 'C', WS5   => 'D',
     SS7   => 'E', ST7   => 'F', WD7   => 'G', WS7   => 'H',
     SDS   => 'I', SRF   => 'J', STF   => 'K', WDF   => 'L',
@@ -51,17 +51,17 @@ our %FONTMAP = (
     WD10  => 'Q', WS10  => 'R', SS15  => 'S', ST15  => 'T',
     WD15  => 'U', WS15  => 'V', SS24  => 'W', ST31  => 'X',
     SMALL => '@'
-);
-our %COLORMAP = (
+};
+use constant COLORMAP => {
     AUTO      => 'A', RED       => 'B', GREEN     => 'C',
     YELLOW    => 'F', DIM_RED   => 'D', DIM_GREEN => 'E',
     BROWN     => 'G', AMBER     => 'H', ORANGE    => 'I',
     MIX1      => 'J', MIX2      => 'K', MIX3      => 'L',
     BLACK     => 'M'
-);
-our %ALIGNMAP = (
+};
+use constant ALIGNMAP => {
     LEFT   => 1, RIGHT  => 2, CENTER => 3
-);
+};
 
 sub _init {
     my $this = shift;
@@ -78,7 +78,7 @@ sub _factory {
     return $this->{factory};
 }
 
-sub queueCfg {
+sub sendCmd {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{setting} ) ) {
@@ -541,7 +541,7 @@ sub encode {
         # effect
         my $effect = $LedSign::BB::EFFECTMAP{ $this->{effect} };
         if ( !$effect ) {
-            $effect = $EFFECTMAP{AUTO};
+            $effect = $this->EFFECTMAP()->{AUTO};
         }
         $msg .= $effect;
 
@@ -605,7 +605,6 @@ sub encode {
             elsif ( $value eq "bytime" ) {
                 $msg .= "F" . "T";
             } elsif ($value eq "test") {
-                print "displaymode is test...";
                 $msg .= "F" . "F1";
                 #$msg .= "F" . "A";
             }
@@ -669,8 +668,8 @@ sub processTags {
         my $fonttag = $1;
         my $font    = $2;
         my $substitute;
-        if ( exists( $FONTMAP{$font} ) ) {
-            $substitute = $fontctl . $LedSign::BB::FONTMAP{$font};
+        if ( exists( $this->FONTMAP()->{$font} ) ) {
+            $substitute = $fontctl . $this->FONTMAP()->{$font};
         }
         else {
             $substitute = '';
@@ -684,8 +683,8 @@ sub processTags {
         my $colortag = $1;
         my $color    = $2;
         my $substitute;
-        if ( exists( $COLORMAP{$color} ) ) {
-            $substitute = $colorctl . $LedSign::BB::COLORMAP{$color};
+        if ( exists( $this->COLORMAP()->{$color} ) ) {
+            $substitute = $colorctl . $this->COLORMAP()->{$color};
         }
         else {
             $substitute = '';
@@ -781,7 +780,7 @@ Version 0.92
   #
   use LedSign::BB;
   my $sign=LedSign::BB->new();
-  $sign->queueCfg(
+  $sign->sendCmd(
       setting => "brightness",
       value => 1
   );
@@ -804,7 +803,7 @@ LedSign::BB is used to send text and graphics via RS232 to a specific set of pro
 
 Adds a text messsage to display on the sign.  The $sign->queueMsg method has only one required argument...data, which is the text to display on the sign. 
 
-Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->queueMsg" >> and L<< /"$sign->queueCfg" >> methods.
+Note that this message isn't sent to the sign until you call the L<< /"$sign->send" >> method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the L<< /"$sign->queueMsg" >> and L<< /"$sign->sendCmd" >> methods.
 
 =over 4
 
@@ -946,7 +945,7 @@ This behavior may be useful to some people that want to, for example, keep a con
 
 
 
-=head2 $sign->queueCfg
+=head2 $sign->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
@@ -961,11 +960,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  value is mandatory can be 1 to 8, with 1 being the brightest,
   #    or, you can supply A as brightness, and it will adjust automatically
   #
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "/dev/ttyUSB0",
       setting => "brightness",
       value => 1
   );
-  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =item B<reset>
 
@@ -973,7 +972,8 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # does a soft reset on the sign
   #   data is not erased
   #
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "COM4",
       setting => "reset",
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
@@ -985,7 +985,8 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   #  note: this command takes 30 seconds or so to process, during
   #        which time, the send method will block waiting on a response
   #  
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "/dev/ttyUSB1",
       setting => "cleardata",
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
@@ -1002,7 +1003,8 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   # as unix epoch seconds.  The perl "time" function, for example, returns
   # this type of value
   #
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "COM1",
       setting => "settime",
       value => "now"
   );
@@ -1022,7 +1024,8 @@ Valid values: basic, expand
   #
   # example of setting sign to expand mode
   #
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "/dev/ttyUSB0",
       setting => "signmode",
       value => "expand"
   );
@@ -1040,7 +1043,8 @@ Valid values: allslots, bytime
   #
   # example of setting displaymode to allslots
   #
-  $sign->queueCfg(
+  $sign->sendCmd(
+      device => "COM2",
       setting => "displaymode",
       value => "allslots"
   );

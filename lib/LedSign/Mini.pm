@@ -48,7 +48,6 @@ sub _init {
 
 sub _flush {
     my $this = shift;
-    print "_flush called\n";
     $this->{msgcount} = 0;
     $this->initslots();
     $this->{factory}    = LedSign::Mini::Factory->new();
@@ -56,7 +55,6 @@ sub _flush {
 
 sub _factory {
     my $this = shift;
-    print "_factory has been called!\n";
     return $this->{factory};
 }
 
@@ -115,7 +113,6 @@ sub queueIcon {
 sub queueMsg {
     my $this = shift;
     my (%params) = @_;
-    print "queueMsg called\n";
     # validate parameters
     my $maxmsgs = scalar(SLOTRANGE());
     if ( $this->{msgcount} >= $maxmsgs ) {
@@ -191,7 +188,6 @@ sub getshowbits {
     foreach my $num (@slots) {
         $total += $BITVAL{$num};
     }
-    print "total is [$total]\n";
     if ($total > 0) {
         return pack( "C*", ( 0x02, 0x33, $total ) );
     } else {
@@ -255,7 +251,6 @@ sub sendQueue {
     #select( undef, undef, undef, $packetdelay );
     my $count = 0;
     foreach my $msgobj ( $this->_factory->objects('msg') ) {
-        print "sending message\n";
         # get the data
         $count++;
         # process font and image tags first
@@ -286,7 +281,6 @@ sub sendQueue {
             slots  => \@slots
         );
     } elsif ($runslots eq "none") {
-        print "runslots is 'none'\n";
         $this->sendRunSlots(
             baudrate => $params{baudrate}, 
             packetdelay => $params{packetdelay},
@@ -360,9 +354,8 @@ sub sendRunSlots {
         $serial->write($bits);
         select(undef,undef,undef,$packetdelay);
     } else {
-        print "sending the nothing...\n";
-        my $nothing=pack( "C*", (0x02,0x33,0x00,0x00));
-        $serial->write($nothing);
+        # we'll just literally do nothing...
+        #$serial->write($nothing);
         #select(undef,undef,undef,$packetdelay);
     }
 }

@@ -28,6 +28,7 @@ sub new {
     bless $this, $class;
     $this->_init(%params);
     $this->{tags}=();
+    $this->initslots($this->SLOTRANGE());
     return $this;
 }
 sub flush {
@@ -81,7 +82,7 @@ sub initslots {
     my @slotrange=$this->SLOTRANGE();
     @{$this->{slotrange}}=@slotrange;
     @{$this->{freeslots}}=@slotrange;
-    $this->{usedslots}=();
+    $this->{usedslots}=[];
 }
 sub setslot {
     my $this=shift;
