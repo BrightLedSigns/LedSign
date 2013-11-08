@@ -93,10 +93,16 @@ sub _init {
     my $this = shift;
     my (%params) = @_;
     $this->{device}   = $params{device};
-    $this->{refcount} = 0;
     $this->{factory}  = LedSign::M500::Factory->new();
     return $this;
 }
+
+sub _flush {
+    my $this = shift;
+    $this->initslots();
+    $this->{factory}    = LedSign::Mini::Factory->new();
+}
+
 
 sub _factory {
     my ($this) = shift;

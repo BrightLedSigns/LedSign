@@ -28,7 +28,7 @@ sub new {
     bless $this, $class;
     $this->_init(%params);
     $this->{tags}=();
-    $this->initslots($this->SLOTRANGE());
+    $this->initslots();
     return $this;
 }
 sub flush {
@@ -131,7 +131,7 @@ sub getkey {
         return "<error>";
     }
 }
-
+1;
 package LedSign::Factory;
 sub new {
     my $that  = shift;

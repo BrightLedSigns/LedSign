@@ -68,10 +68,16 @@ sub _init {
     my (%params) = @_;
     $this->{device}   = $params{device};
     $this->{refcount} = 0;
-    $this->initslots(SLOTRANGE);
     $this->{factory} = LedSign::BB::Factory->new();
     return $this;
 }
+sub _flush {
+    my $this = shift;
+    $this->{msgcount} = 0;
+    $this->initslots();
+    $this->{factory}    = LedSign::Mini::Factory->new();
+}
+
 
 sub _factory {
     my ($this) = shift;

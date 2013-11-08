@@ -42,7 +42,6 @@ sub _init {
     $this->{devicetype} = $params{devicetype};
     $this->{msgcount} = 0;
     $this->{factory}    = LedSign::Mini::Factory->new();
-    $this->initslots();
     return $this;
 }
 
