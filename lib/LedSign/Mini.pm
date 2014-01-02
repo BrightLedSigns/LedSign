@@ -299,7 +299,7 @@ sub validateSlots {
 sub sendCmd {
     my $this=shift;
     my %params=@_;
-    my @validcmds=qw(runslots);
+    my @validcmds=qw(runslots brightness);
     if (!exists $params{cmd}) {
         croak("Parameter cmd must be supplied to sendCmd");
     } else {
@@ -325,6 +325,33 @@ sub sendCmd {
             slots => \@runslots
         );
     } 
+    if ($cmd eq "brightness") {
+        $this->sendBrightness(
+            baudrate => $params{baudrate}, 
+            packetdelay => $params{packetdelay},
+            device => $params{device},
+        );
+    }
+}
+sub sendBrightness {
+    my $this=shift;
+    my %params=@_;
+    my $baudrate=$this->checkbaudrate($params{baudrate});
+    my $packetdelay=$this->checkpacketdelay($params{packetdelay});
+    my $serial;
+    if ( defined $params{debug} ) {
+        $serial = Device::MiniLED::SerialTest->new();
+    } else {
+        $serial = $this->connect(
+            device   => $params{device},
+            baudrate => $params{baudrate}
+        );
+    }
+    my $bits=pack( "C*", ( 0x02, 0x32, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0xFF) );
+    print "sending bits...\n";
+    my $count=$serial->write($bits) * 8;
+    print "wrote [$count] bits\n";
+    select(undef,undef,undef,$packetdelay);
 }
 sub sendRunSlots {
     my $this=shift;
