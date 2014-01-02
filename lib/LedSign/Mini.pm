@@ -1390,7 +1390,6 @@ The "runslots" setting allows you to select which of the preprogrammed message s
       cmd => "runslots",
       slots => [1,2]
   );
-  
 
 =back
 
@@ -1425,17 +1424,18 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 
 =back
 
+  # typical use on a windows machine
   $buffer->sendQueue(
       device => "COM4"
-  ); # typical use on a windows machine
-    
+  )
+  # typical use on a unix/linux machine
   $buffer->sendQueue(
       device => "/dev/ttyUSB0"
   ); # typical use on a unix/linux machine
-    
+  #
   # using optional arguments, set baudrate to 9600, and sleep 1/2 a second
   # between sending packets.  
-      
+  #
   $buffer->sendQueue(
       device => "COM8",
       baudrate => "9600",
@@ -1444,13 +1444,12 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
-  
-  $buffer->sendQueue(device => "COM4");
   # send to the first sign
-    
-  $buffer->sendQueue(device => "COM6");
+  $buffer->sendQueue(device => "COM4");
+  #
   # send to another sign
-    
+  $buffer->sendQueue(device => "COM6");
+  #  
   # send to a badge connected on COM7
   #   this works fine for plain text, but won't work well for
   #   pictures and icons...you'll have to create a new
@@ -1463,16 +1462,20 @@ Kerry Schwab, C<< <sales at brightledsigns.com> >>
 
 =head1 SUPPORT
 
- You can find documentation for this module with the perldoc command.
+You can find documentation for this module with the perldoc command.  C<perldoc LedSign::Mini>
   
-   perldoc LedSign::Mini
-  
- You can also look for information at:
+You can also look for information at:
 
 =over 
 
 =item * Our Website:
 L<http://www.brightledsigns.com/developers>
+
+=item * Github:
+L<https://github.com/BrightLedSigns/LedSign/blob/master/LedSign%3A%3AMini.md>
+
+=item * Meta CPAN
+L<https://metacpan.org/release/LedSign>
 
 =back
  

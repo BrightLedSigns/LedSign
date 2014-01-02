@@ -9,6 +9,7 @@ Version 1.00
 
 # SYNOPSIS
 
+```perl
     use LedSign::Mini;
     my $buffer=LedSign::Mini->new(devicetype => "sign");
     #
@@ -38,6 +39,7 @@ Version 1.00
     # have a second sign, on a different serial port, we can send everything
     # to it as well...
     $buffer->sendQueue(device => "COM4");
+```
 
 # DESCRIPTION
 
@@ -47,12 +49,14 @@ LedSign::Mini is used to send text and graphics via RS232 to our smaller set of 
 
 ## new
 
+```perl
     my $buffer=LedSign::Mini->new(
            devicetype => $devicetype
     );
     # $devicetype can be either:
     #   sign  - denoting a device with a 16 pixel high display
     #   badge - denoting a device with a 12 pixel high display
+```
 
 # METHODS
 
@@ -68,6 +72,7 @@ The $buffer->queueMsg method has three required arguments...data, effect, and sp
 
 The queueMsg method returns a number that indicates how many messages have been created.  This may be helpful to ensure you don't try to add a 9th message, which will fail:
 
+```perl
     my $buffer=LedSign::Mini->new(devicetype => "sign");
     for (1..9) {
          my $number=$buffer->queueMsg(
@@ -78,6 +83,7 @@ The queueMsg method returns a number that indicates how many messages have been 
          # on the ninth loop, $number will be undef, and a warning will be
          # generated
     }
+```
 
 ## $buffer->queuePix
 
@@ -85,6 +91,7 @@ The queuePix method allow you to create simple, single color pixmaps that can be
 
 __Using the built-in clipart__
 
+```perl
     #
     # load the built-in piece of clipart named phone16
     #   the "16" is hinting that it's 16 pixels high, and thus better suited to
@@ -97,6 +104,7 @@ __Using the built-in clipart__
     $buffer->queueMsg(
         data => "here is a phone: $pic",
     );
+```
 
 __Rolling your own pictures__
 
@@ -110,6 +118,7 @@ __data__ : a string of 1's and 0's, where the 1 will light up the pixel and
 a 0 won't.  You might find Image::Pbm and it's $image->as\_bitstring method
 helpful in generating these strings.
 
+```perl
     # make a 5x5 pixel outlined box 
     my $pic=$buffer->queuePix(
           height => 5,
@@ -125,8 +134,12 @@ helpful in generating these strings.
     $buffer->queueMsg(
         data => "here is a 5 pixel box outline: $pic",
     );
+```
+
+```perl
 
 
+```
 
 ## $buffer->queueIcon
 
@@ -138,6 +151,7 @@ into a left and right halves, each one being 16x16 (or 12x12) pixels.
 Then, when displayed on the sign, it alternates between the two, in place, 
 creating a simple animation.
 
+```perl
     # make an icon using the built-in heart16 clipart
     my $icon=$buffer->queueIcon(
         clipart => "heart16"
@@ -146,9 +160,11 @@ creating a simple animation.
     $buffer->queueMsg(
         data => "Animated heart icon: $icon",
     );
+```
 
 You can "roll your own" icons as well.  
 
+```perl
     # make an animated icon that alternates between a big box and a small box
     my $buffer=LedSign::Mini->new(devicetype => "sign");
     my $icon16x32=
@@ -179,6 +195,7 @@ You can "roll your own" icons as well.
     $buffer->queueMsg(
         data => "Flashing Icon: [$icon]"
     );
+```
 
 ## $buffer->sendCmd
 
@@ -190,28 +207,29 @@ Settings you can change, with examples:
 
     The "runslots" setting allows you to select which of the preprogrammed message slots (1-8) are shown on the sign.
 
-            use LedSign::Mini;
-            select STDOUT;$|=1; # unbuffer STDOUT
-            my $buffer=LedSign::Mini->new(devicetype => "sign");
-            #
-            # add 7 messages
-            # 
-            for (1..7) {
-                 $buffer->queueMsg(data=>"Msg $_");
-            }    
-            # add an 8th message, that's just a space
-            $buffer->queueMsg(data=>" ");
-            # send the messages, and display the blank one
-            $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
-            # sleep for 10 seconds, then show the 1st and 2nd message
-            print STDOUT "sleeping for 10 seconds...\n";
-            sleep 10;
-            $buffer->sendCmd(
-                device => '/dev/ttyUSB0',
-                cmd => "runslots",
-                slots => [1,2]
-            );
-            
+    ```perl
+        use LedSign::Mini;
+        select STDOUT;$|=1; # unbuffer STDOUT
+        my $buffer=LedSign::Mini->new(devicetype => "sign");
+        #
+        # add 7 messages
+        # 
+        for (1..7) {
+             $buffer->queueMsg(data=>"Msg $_");
+        }    
+        # add an 8th message, that's just a space
+        $buffer->queueMsg(data=>" ");
+        # send the messages, and display the blank one
+        $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
+        # sleep for 10 seconds, then show the 1st and 2nd message
+        print STDOUT "sleeping for 10 seconds...\n";
+        sleep 10;
+        $buffer->sendCmd(
+            device => '/dev/ttyUSB0',
+            cmd => "runslots",
+            slots => [1,2]
+        );
+    ```
 
 ## $buffer->sendQueue
 
@@ -225,37 +243,41 @@ It supports three optional arguments: runslots, baudrate, and packetdelay:
 - __baudrate__: defaults to 38400, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 - __packetdelay__: An amount of time, in seconds, to wait, between sending packets to the sign.  The default is 0.25, and seems to work well.  If you see "XX" on your sign while sending data, increasing this value may help. Must be greater than zero.  For reference, each text message generates 3 packets, and each 16x32 portion of an image sends one packet.  There's also an additional, short, packet sent after all message and image packets are delivered. So, if you make packetdelay a large number...and have lots of text and/or images, you may be waiting a while to send all the data.
 
+```perl
+    # typical use on a windows machine
     $buffer->sendQueue(
         device => "COM4"
-    ); # typical use on a windows machine
-      
+    )
+    # typical use on a unix/linux machine
     $buffer->sendQueue(
         device => "/dev/ttyUSB0"
     ); # typical use on a unix/linux machine
-      
+    #
     # using optional arguments, set baudrate to 9600, and sleep 1/2 a second
     # between sending packets.  
-        
+    #
     $buffer->sendQueue(
         device => "COM8",
         baudrate => "9600",
         packetdelay => 0.5
     );
+```
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
-    
-    $buffer->sendQueue(device => "COM4");
+```perl
     # send to the first sign
-      
-    $buffer->sendQueue(device => "COM6");
+    $buffer->sendQueue(device => "COM4");
+    #
     # send to another sign
-      
+    $buffer->sendQueue(device => "COM6");
+    #  
     # send to a badge connected on COM7
     #   this works fine for plain text, but won't work well for
     #   pictures and icons...you'll have to create a new
     #   sign object with devicetype "badge" for them to render correctly
     $buffer->sendQueue(device => "COM7"); 
+```
 
 # AUTHOR
 
@@ -263,14 +285,17 @@ Kerry Schwab, `<sales at brightledsigns.com>`
 
 # SUPPORT
 
-    You can find documentation for this module with the perldoc command.
-     
-     perldoc LedSign::Mini
-    
-    You can also look for information at:
+You can find documentation for this module with the perldoc command.  `perldoc LedSign::Mini`
+  
+
+You can also look for information at:
 
 - Our Website:
 [http://www.brightledsigns.com/developers](http://www.brightledsigns.com/developers)
+- Github:
+[https://github.com/BrightLedSigns/LedSign/blob/master/LedSign%3A%3AMini.md](https://github.com/BrightLedSigns/LedSign/blob/master/LedSign%3A%3AMini.md)
+- Meta CPAN
+[https://metacpan.org/release/LedSign](https://metacpan.org/release/LedSign)
 
 # BUGS
 
@@ -287,9 +312,15 @@ Inspiration from similar work:
 - [https://github.com/ajesler/ledbadge-rb](https://github.com/ajesler/ledbadge-rb) - Python library that appears to be targeting signs with a very similar protocol. 
 - [http://search.cpan.org/~mspencer/ProLite-0.01/ProLite.pm](http://search.cpan.org/~mspencer/ProLite-0.01/ProLite.pm) - The only other CPAN perl module I could find that does something similar, albeit for a different type of sign.
 
+```perl
 
 
+```
 
+```perl
+
+
+```
 
 # LICENSE AND COPYRIGHT
 
@@ -315,4 +346,7 @@ THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
+```perl
 
+
+```
