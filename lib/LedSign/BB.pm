@@ -791,7 +791,6 @@ Version 0.92
   );
   $buffer->sendQueue(device => "/dev/ttyUSB0");
  
-
 =head1 DESCRIPTION
 
 LedSign::BB is used to send text and graphics via RS232 to a specific set of programmable scrolling LED signs (BB* and SB* models from BrightLEDSigns.com) 
@@ -815,10 +814,11 @@ Note that this message isn't sent to the sign until you call the L<< /"$buffer->
 =item B<data>
 
 The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
-  
+
   # font, color, and time tag example
   $buffer->queueMsg(
-      data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
+      data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text".
+              "<c:RED>The time is <t:A>"
   ) 
   # valid values for time tags
   # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
@@ -838,10 +838,7 @@ Note that the message can contain a newline.  Depending on the pixel height of t
 
 =item B<effect>
 
-Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK 
- 
-Defaults to HOLD
-
+Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK.  Defaults to HOLD
 
 =item B<speed>
 
@@ -865,7 +862,6 @@ The first two characters in the font name denote style: SS = Standard, ST = Bold
 
 The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
 
-
 =item B<color>
 
 Allows you to specify the default color for the message.  Defaults to "AUTO".   Note that you can use multiple colors in a single message via the use of L<color tags in the data parameter|/"data">.
@@ -888,9 +884,7 @@ Default value: 0000
 
 =over
 
-=item B<caveat>
-
-The start, stop, and rundays parameters are only used if both of these conditions are met:
+=item B<caveat> The start, stop, and rundays parameters are only used if both of these conditions are met:
 
 =over
 
@@ -927,7 +921,7 @@ B<Note:> See the L</"caveat"> about start, stop and rundays.
 Optional.  The sign has 36 message slots, numbered from 0 to 9 and A to Y.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  
 
 This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
- 
+
   #
   # example of using the slot parameter
   # 
@@ -945,16 +939,13 @@ This behavior may be useful to some people that want to, for example, keep a con
   #
   $buffer->sendQueue(device => "COM3");
 
-
 =back
-
-
 
 =head2 $buffer->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
-=head3 Settings you can change, with examples
+Settings you can change, with examples:
 
 =over 4
 
@@ -996,8 +987,7 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   );
   $buffer->sendQueue(device => "/dev/ttyUSB0");
 
-
-=item B<setttime>
+=item B<settime>
 
   #
   # sets the internal date and time clock on the sign. 
@@ -1014,7 +1004,6 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
       value => "now"
   );
   $buffer->sendQueue(device => "/dev/ttyUSB0");
-
 
 =item B<signmode>
 
@@ -1056,8 +1045,6 @@ Valid values: allslots, bytime
 
 =back
 
-
-
 =head2 $buffer->sendQueue
 
 The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $buffer->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
@@ -1098,11 +1085,9 @@ Kerry Schwab, C<< <sales at brightledsigns.com> >>
 
 =head1 SUPPORT
 
- You can find documentation for this module with the perldoc command.
+You can find documentation for this module with the perldoc command.  C<perldoc LedSign::BB>
   
-   perldoc LedSign::BB
-  
- You can also look for information at:
+You can also look for information at:
 
 =over 
 
@@ -1128,30 +1113,4 @@ Inspiration from similar work:
 
 =back
 
-
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2013 Kerry Schwab.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at: L<http://www.perlfoundation.org/artistic_license_2_0>
-
-Aggregation of this Package with a commercial distribution is always
-permitted provided that the use of this Package is embedded; that is,
-when no overt attempt is made to make this Package's interfaces visible
-to the end user of the commercial distribution. Such use shall not be
-construed as a distribution of this Package.
-
-The name of the Copyright Holder may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
-
 =cut
-

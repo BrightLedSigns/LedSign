@@ -824,7 +824,6 @@ Version 0.92
       value => "now"
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
- 
 
 =head1 DESCRIPTION
 
@@ -862,7 +861,6 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
   # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
   # I - short spelling of day (SUN, MON, TUE, etc)
   # I - long spelling of day (Sunday, Monday, Tuesday, etc)
-  
 
 =item B<effect>
 
@@ -889,7 +887,6 @@ Valid values are: SS5, ST5, WD5, WS5, SS7, ST7, WD7, WS7, SDS, SRF, STF, WDF, WS
 The first two characters in the font name denote style: SS = Standard, ST = Bold, WD = Wide, WS= Wide with Shadow
 
 The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
-
 
 =item B<color>
 
@@ -950,9 +947,11 @@ B<Note:> See the L</"caveat"> about start, stop and rundays.
 Optional, and NOT recommended, because it's somewhat confusing.  The sign has 36 message slots, numbered from 0 to 9 and A to Z.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  The reason we don't recommend using the slot parameter is that, because of how the sign works, specifying a slot erases all other slots that have a higher number.  For example, if you send something specifically to slot 8, the contents of slots 9, and A-Z, will be erased.   The contents in slots 0-7, however, will remain intact.
 
 This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
- 
+
+Example of using the slot parameter INCORRECTLY
+
+  # INCORRECT EXAMPLE
   #
-  # example of using the slot parameter INCORRECTLY
   #  "Message Two" will never show.
   #  Every time you use slot, all higher numbered slots are erased.
   #  So, because these are sent out of order, the message in slot 1 is erased
@@ -969,13 +968,16 @@ This behavior may be useful to some people that want to, for example, keep a con
   #
   $sign->sendQueue(device => "COM3");
 
+Example of using the slot parameter CORRECTLY
+
+  # CORRECT EXAMPLE
   #
   # example of using the slot parameter CORRECTLY
   #   since these slots are in consecutive order (3, then 4), neither will
   #   be erased 
   # 
-  #   also, if the sign already had messages in slots 0, 1, or 2, they will continue
-  #   to be shown.
+  #   also, if the sign already had messages in slots 0, 1, or 2, they 
+  #   will continue to be shown.
   # 
   #   however, any message running on the sign with a message slot higher 
   #   than 4 would have been erased 
@@ -989,7 +991,6 @@ This behavior may be useful to some people that want to, for example, keep a con
       data => "Message One",
       slot => 4
   );
-
   #
   #
   $sign->sendQueue(device => "COM3");
@@ -1000,7 +1001,7 @@ This behavior may be useful to some people that want to, for example, keep a con
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
-=head3 Settings you can change, with examples
+Settings you can change, with examples:
 
 =over 4
 
@@ -1043,8 +1044,6 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
 =back
 
-
-
 =head2 $sign->send
 
 The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
@@ -1058,7 +1057,6 @@ It supports one optional argument: baudrate
 B<baudrate>: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
 =back
-
 
   # typical use on a windows machine
   $sign->sendQueue(
@@ -1114,31 +1112,6 @@ Inspiration from similar work:
 =item L<ProLite Perl Module|ProLite> - The only other CPAN perl module I could find that does something similar, albeit for a different type of sign.
 
 =back
-
-
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2013 Kerry Schwab.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at: L<http://www.perlfoundation.org/artistic_license_2_0>
-
-Aggregation of this Package with a commercial distribution is always
-permitted provided that the use of this Package is embedded; that is,
-when no overt attempt is made to make this Package's interfaces visible
-to the end user of the commercial distribution. Such use shall not be
-construed as a distribution of this Package.
-
-The name of the Copyright Holder may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
 
 =cut
 

@@ -9,21 +9,24 @@ Version 0.92
 
 # SYNOPSIS
 
+```perl
     #!/usr/bin/perl
     use LedSign::BB;
     #
     # add two messages then send them to a sign
     #   connected to COM3 (windows)
     #
-    my $sign=LedSign::BB->new();
-    $sign->queueMsg(
+    my $buffer=LedSign::BB->new();
+    $buffer->queueMsg(
         data => "Message One"
     );
-    $sign->queueMsg(
+    $buffer->queueMsg(
         data => "Message Two"
     );
-    $sign->sendQueue(device => "COM3");
+    $buffer->sendQueue(device => "COM3");
+```
 
+```perl
      #!/usr/bin/perl
      #
      # adjust the brightness on a sign 
@@ -33,13 +36,14 @@ Version 0.92
      #      1 to 8  - Manual Brightness (1 being the brightest)
      #
      use LedSign::BB;
-     my $sign=LedSign::BB->new();
-     $sign->sendCmd(
+     my $buffer=LedSign::BB->new();
+     $buffer->sendCmd(
          setting => "brightness",
          value => 1
      );
-     $sign->sendQueue(device => "/dev/ttyUSB0");
+     $buffer->sendQueue(device => "/dev/ttyUSB0");
     
+```
 
 # DESCRIPTION
 
@@ -49,49 +53,50 @@ LedSign::BB is used to send text and graphics via RS232 to a specific set of pro
 
 ## new
 
-    my $sign=LedSign::BB->new();
+```perl
+    my $buffer=LedSign::BB->new();
+```
 
 # METHODS
 
-## $sign->queueMsg
+## $buffer->queueMsg
 
-Adds a text messsage to display on the sign.  The $sign->queueMsg method has only one required argument...data, which is the text to display on the sign. 
+Adds a text messsage to display on the sign.  The $buffer->queueMsg method has only one required argument...data, which is the text to display on the sign. 
 
-Note that this message isn't sent to the sign until you call the ["$sign->send"](#sign-send) method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the ["$sign->queueMsg"](#sign-queuemsg) and ["$sign->sendCmd"](#sign-sendcmd) methods.
+Note that this message isn't sent to the sign until you call the ["$buffer->send"](#buffer-send) method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the ["$buffer->queueMsg"](#buffer-queuemsg) and ["$buffer->sendCmd"](#buffer-sendcmd) methods.
 
 - __data__
 
     The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
-      
 
+    ```perl
         # font, color, and time tag example
-        $sign->queueMsg(
-            data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
+        $buffer->queueMsg(
+            data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text".
+                    "<c:RED>The time is <t:A>"
         ) 
         # valid values for time tags
         # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
         # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
         # I - short spelling of day (SUN, MON, TUE, etc)
         # I - long spelling of day (Sunday, Monday, Tuesday, etc)
+    ```
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
     Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
 
+    ```perl
         # two lines of text, assuming the sign is at least 16 pixels high
-        $sign->queueMsg(
+        $buffer->queueMsg(
             data => "<f:SS7>This is line 1\nThis is line2",
             align => "LEFT"
         );
+    ```
 
 - __effect__
 
-    Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK 
-     
-
-    Defaults to HOLD
-
-
+    Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK.  Defaults to HOLD
 
 - __speed__
 
@@ -115,8 +120,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
 
-
-
 - __color__
 
     Allows you to specify the default color for the message.  Defaults to "AUTO".   Note that you can use multiple colors in a single message via the use of [color tags in the data parameter](#data).
@@ -137,10 +140,7 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Default value: 0000
 
-    - __caveat__
-
-        The start, stop, and rundays parameters are only used if both of these conditions are met:
-
+    - __caveat__ The start, stop, and rundays parameters are only used if both of these conditions are met:
         - Ensure that ["signmode"](#signmode) is set to expand
         - Ensure that ["displaymode"](#displaymode) is set to bytime
 
@@ -169,75 +169,76 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
     Optional.  The sign has 36 message slots, numbered from 0 to 9 and A to Y.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  
 
     This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
-     
 
+    ```perl
         #
         # example of using the slot parameter
         # 
         #
-        my $sign=LedSign::BB->new();
-        $sign->queueMsg(
+        my $buffer=LedSign::BB->new();
+        $buffer->queueMsg(
             data => "Message Two",
             slot => 3
         );
-        $sign->queueMsg(
+        $buffer->queueMsg(
             data => "Message One",
             slot => 4
         );
         #
         #
-        $sign->sendQueue(device => "COM3");
+        $buffer->sendQueue(device => "COM3");
+    ```
 
-
-
-
-
-
-
-## $sign->sendCmd
+## $buffer->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
-### Settings you can change, with examples
+Settings you can change, with examples:
 
 - __brightness__
 
+    ```perl
         #
         # adjust the brightness on a sign 
         #  value is mandatory can be 1 to 8, with 1 being the brightest,
         #    or, you can supply A as brightness, and it will adjust automatically
         #
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "/dev/ttyUSB0",
             setting => "brightness",
             value => 1
         );
+    ```
 - __reset__
 
+    ```perl
         #
         # does a soft reset on the sign
         #   data is not erased
         #
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "COM4",
             setting => "reset",
         );
-        $sign->sendQueue(device => "/dev/ttyUSB0");
+        $buffer->sendQueue(device => "/dev/ttyUSB0");
+    ```
 - __cleardata__
 
+    ```perl
         #
         # clears all data on the sign
         #  note: this command takes 30 seconds or so to process, during
         #        which time, the send method will block waiting on a response
         #  
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "/dev/ttyUSB1",
             setting => "cleardata",
         );
-        $sign->sendQueue(device => "/dev/ttyUSB0");
+        $buffer->sendQueue(device => "/dev/ttyUSB0");
+    ```
+- __settime__
 
-- __setttime__
-
+    ```perl
         #
         # sets the internal date and time clock on the sign. 
         # You can supply the string # "now", and it will sync the sign's clock  
@@ -247,13 +248,13 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
         # as unix epoch seconds.  The perl "time" function, for example, returns
         # this type of value
         #
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "COM1",
             setting => "settime",
             value => "now"
         );
-        $sign->sendQueue(device => "/dev/ttyUSB0");
-
+        $buffer->sendQueue(device => "/dev/ttyUSB0");
+    ```
 - __signmode__
 
     This sets the sign's mode to either "expand" or "basic".  
@@ -264,14 +265,16 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
     Valid values: basic, expand
 
+    ```perl
         #
         # example of setting sign to expand mode
         #
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "/dev/ttyUSB0",
             setting => "signmode",
             value => "expand"
         );
+    ```
 
 - __displaymode__
 
@@ -283,47 +286,49 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
     Valid values: allslots, bytime
 
+    ```perl
         #
         # example of setting displaymode to allslots
         #
-        $sign->sendCmd(
+        $buffer->sendCmd(
             device => "COM2",
             setting => "displaymode",
             value => "allslots"
         );
+    ```
 
+## $buffer->sendQueue
 
-
-
-
-## $sign->send
-
-The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
+The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $buffer->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
 
 It supports one optional argument: baudrate
 
 - __baudrate__: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
+```perl
     # typical use on a windows machine
-    $sign->sendQueue(
+    $buffer->sendQueue(
         device => "COM4"
     );
     # typical use on a unix/linux machine
-    $sign->sendQueue(
+    $buffer->sendQueue(
         device => "/dev/ttyUSB0"
     );
     # using optional argument, set baudrate to 2400
-    $sign->sendQueue(
+    $buffer->sendQueue(
         device => "COM8",
         baudrate => "2400"
     );
+```
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
+```perl
     # send to the first sign
-    $sign->sendQueue(device => "COM4");
+    $buffer->sendQueue(device => "COM4");
     # send to another sign
-    $sign->sendQueue(device => "COM6");
+    $buffer->sendQueue(device => "COM6");
+```
 
 # AUTHOR
 
@@ -331,11 +336,10 @@ Kerry Schwab, `<sales at brightledsigns.com>`
 
 # SUPPORT
 
-    You can find documentation for this module with the perldoc command.
-     
-     perldoc LedSign::BB
-    
-    You can also look for information at:
+You can find documentation for this module with the perldoc command.  `perldoc LedSign::BB`
+  
+
+You can also look for information at:
 
 - Our Website:
 [http://www.brightledsigns.com/developers](http://www.brightledsigns.com/developers)
@@ -352,31 +356,3 @@ notified of progress on your bug as I make changes.
 Inspiration from similar work:
 
 - [ProLite Perl Module](https://metacpan.org/pod/ProLite) - The only other CPAN perl module I could find that does something similar, albeit for a different type of sign.
-
-
-
-
-
-# LICENSE AND COPYRIGHT
-
-Copyright 2013 Kerry Schwab.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at: [http://www.perlfoundation.org/artistic_license_2_0](http://www.perlfoundation.org/artistic_license_2_0)
-
-Aggregation of this Package with a commercial distribution is always
-permitted provided that the use of this Package is embedded; that is,
-when no overt attempt is made to make this Package's interfaces visible
-to the end user of the commercial distribution. Such use shall not be
-construed as a distribution of this Package.
-
-The name of the Copyright Holder may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
-

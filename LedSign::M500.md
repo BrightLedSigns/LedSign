@@ -9,6 +9,7 @@ Version 0.92
 
 # SYNOPSIS
 
+```perl
     #!/usr/bin/perl
     use LedSign::M500;
     #
@@ -23,20 +24,22 @@ Version 0.92
         data => "Message Two"
     );
     $sign->sendQueue(device => "COM3");
+```
 
-     #!/usr/bin/perl
-     #
-     # set the time on the sign to the current time
-     #  on this machine
-     # 
-     use LedSign::M500;
-     my $sign=LedSign::M500->new();
-     $sign->sendCmd(
-         setting => "settime",
-         value => "now"
-     );
-     $sign->sendQueue(device => "/dev/ttyUSB0");
-    
+```perl
+    #!/usr/bin/perl
+    #
+    # set the time on the sign to the current time
+    #  on this machine
+    # 
+    use LedSign::M500;
+    my $sign=LedSign::M500->new();
+    $sign->sendCmd(
+        setting => "settime",
+        value => "now"
+    );
+    $sign->sendQueue(device => "/dev/ttyUSB0");
+```
 
 # DESCRIPTION
 
@@ -46,7 +49,9 @@ LedSign::M500 is used to send text and graphics via RS232 to a specific set of p
 
 ## new
 
+```perl
     my $sign=LedSign::M500->new();
+```
 
 # METHODS
 
@@ -62,17 +67,18 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
-            # font, color, and time tag example
-            $sign->queueMsg(
-                data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
-                        "<c:RED>The time is <t:A>"
-            ) 
-            # valid values for time tags
-            # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
-            # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
-            # I - short spelling of day (SUN, MON, TUE, etc)
-            # I - long spelling of day (Sunday, Monday, Tuesday, etc)
-            
+    ```perl
+        # font, color, and time tag example
+        $sign->queueMsg(
+            data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+                    "<c:RED>The time is <t:A>"
+        ) 
+        # valid values for time tags
+        # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
+        # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
+        # I - short spelling of day (SUN, MON, TUE, etc)
+        # I - long spelling of day (Sunday, Monday, Tuesday, etc)
+    ```
 
 - __effect__
 
@@ -99,8 +105,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
     The first two characters in the font name denote style: SS = Standard, ST = Bold, WD = Wide, WS= Wide with Shadow
 
     The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
-
-
 
 - __color__
 
@@ -151,10 +155,12 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
     Optional, and NOT recommended, because it's somewhat confusing.  The sign has 36 message slots, numbered from 0 to 9 and A to Z.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  The reason we don't recommend using the slot parameter is that, because of how the sign works, specifying a slot erases all other slots that have a higher number.  For example, if you send something specifically to slot 8, the contents of slots 9, and A-Z, will be erased.   The contents in slots 0-7, however, will remain intact.
 
     This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
-     
 
+    Example of using the slot parameter INCORRECTLY
+
+    ```perl
+        # INCORRECT EXAMPLE
         #
-        # example of using the slot parameter INCORRECTLY
         #  "Message Two" will never show.
         #  Every time you use slot, all higher numbered slots are erased.
         #  So, because these are sent out of order, the message in slot 1 is erased
@@ -170,14 +176,19 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
         #
         #
         $sign->sendQueue(device => "COM3");
+    ```
 
+    Example of using the slot parameter CORRECTLY
+
+    ```perl
+        # CORRECT EXAMPLE
         #
         # example of using the slot parameter CORRECTLY
         #   since these slots are in consecutive order (3, then 4), neither will
         #   be erased 
         # 
-        #   also, if the sign already had messages in slots 0, 1, or 2, they will continue
-        #   to be shown.
+        #   also, if the sign already had messages in slots 0, 1, or 2, they 
+        #   will continue to be shown.
         # 
         #   however, any message running on the sign with a message slot higher 
         #   than 4 would have been erased 
@@ -191,19 +202,20 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
             data => "Message One",
             slot => 4
         );
-
         #
         #
         $sign->sendQueue(device => "COM3");
+    ```
 
 ## $sign->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
 
-### Settings you can change, with examples
+Settings you can change, with examples:
 
 - __alarm__
 
+    ```perl
         #
         # turn the alarm on or off
         #
@@ -212,8 +224,10 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
             value => "on",
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
+    ```
 - __setttime__
 
+    ```perl
         #
         # sets the internal date and time clock on the sign. 
         #
@@ -229,17 +243,16 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
             value => "now"
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
+    ```
 - __test__
 
+    ```perl
         # display a test pattern on the sign, where every LED is lit
         $sign->sendCmd(
             setting => "test",
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
-
-
-
-
+    ```
 
 ## $sign->send
 
@@ -249,8 +262,7 @@ It supports one optional argument: baudrate
 
 - __baudrate__: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
-
-
+```perl
     # typical use on a windows machine
     $sign->sendQueue(
         device => "COM4"
@@ -264,13 +276,16 @@ It supports one optional argument: baudrate
         device => "COM8",
         baudrate => "2400"
     );
+```
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
+```perl
     # send to the first sign
     $sign->sendQueue(device => "COM4");
     # send to another sign
     $sign->sendQueue(device => "COM6");
+```
 
 # AUTHOR
 
@@ -298,31 +313,3 @@ notified of progress on your bug as I make changes.
 Inspiration from similar work:
 
 - [ProLite Perl Module](https://metacpan.org/pod/ProLite) - The only other CPAN perl module I could find that does something similar, albeit for a different type of sign.
-
-
-
-
-
-# LICENSE AND COPYRIGHT
-
-Copyright 2013 Kerry Schwab.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at: [http://www.perlfoundation.org/artistic_license_2_0](http://www.perlfoundation.org/artistic_license_2_0)
-
-Aggregation of this Package with a commercial distribution is always
-permitted provided that the use of this Package is embedded; that is,
-when no overt attempt is made to make this Package's interfaces visible
-to the end user of the commercial distribution. Such use shall not be
-construed as a distribution of this Package.
-
-The name of the Copyright Holder may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
-

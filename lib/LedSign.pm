@@ -178,7 +178,6 @@ sub objects {
 =head1 NAME
 
 LedSign - Perl library to communicate with various models of programmable LED signs
- 
 
 =head1 VERSION
 
@@ -189,7 +188,6 @@ Version 1.00
 The LedSign library is used to send text and graphics to different models of programmable LED signs. We tried to keep the interface consistent across models, and only introduced per-model variations where the underlying capabilities of the sign were different enough to warrant it.  
 
 It has been tested on both Linux and Windows, and should theoretically run anywhere where the L<Device::SerialPort|http://search.cpan.org/perldoc?Device%3A%3ASerialPort> or L<Win32::SerialPort|http://search.cpan.org/perldoc?Win32%3A%3ASerialPort> modules can be  run.  
-
 
 =head1 SYNOPSIS
 
@@ -232,7 +230,6 @@ L<LedSign::Mini|http://search.cpan.org/perldoc?LedSign%3A%3AMini> - For our smal
 
 L<LedSign::M500|http://search.cpan.org/perldoc?LedSign%3A%3AM500> - For signs on our website that have a model number starting with M500, M1000, or M1500.  It's a very popular, low-cost, single line series of signs available from many sellers.  If the original windows software is entited "single line", "taioping", or "messager (sic)", and the communications settings require 9600 baud, this library will likely work with the sign.  M500 signs that require 2400 baud use an older, incompatible protocol, and won't work with this software.
  
-
 =item *
 
 L<LedSign::BB|http://search.cpan.org/perldoc?LedSign%3A%3ABB> - For signs that we have labeled with product id's that start with BB or SB.  It should also work with signs where the original windows-based software is called "Wonderful LED 2006" or "Moving Sign 2007".  
@@ -276,11 +273,9 @@ simple bitmap or pixmap graphics
 
 The L<LedSign::Mini|http://search.cpan.org/perldoc?LedSign%3A%3AMini> portion of this module supercedes the previous, standalone, L<Device::MiniLED|http://search.cpan.org/perldoc?Device%3A%3AMiniLED> module that supported the same type of sign.  Aside from supporting a wider variety of signs, this module includes bug fixes and features that will not be backported to the older module.
 
-
 =item *
 
 We also created and maintain a python library, called L<pyledsign|https://github.com/BrightLedSigns/pyledsign> that is mostly a straight port of this software to the L<Python|http://www.python.org/> language.  Because it is ported from this software, it typically lags a bit in feature and/or model support.
-
 
 =back
 
@@ -289,7 +284,6 @@ We also created and maintain a python library, called L<pyledsign|https://github
 Kerry Schwab, L<sales@brightledsigns.com|mailto:sales@brightledsigns.com>
 
 I am the owner of L<BrightLEDSigns.com|http://www.brightledsigns.com/>.  Our programmable LED signs, many of which work with this library, are located here: L<Programmable Signs|http://www.brightledsigns.com/scrolling-led-signs.html>.
-
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -302,25 +296,19 @@ copy of the full license at:
 
 L<http://www.freebsd.org/copyright/freebsd-license.html|http://www.freebsd.org/copyright/freebsd-license.html>
 
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the <organization> nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+=over
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+=item *
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+=item *
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+=item *
+Neither the name of the <organization> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+=back
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
