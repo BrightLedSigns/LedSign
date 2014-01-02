@@ -227,6 +227,7 @@ It supports three optional arguments: runslots, baudrate, and packetdelay:
 
 
 
+    
     # typical use on a windows machine
     $buffer->sendQueue(
         device => "COM4"
@@ -245,6 +246,7 @@ It supports three optional arguments: runslots, baudrate, and packetdelay:
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
+    
     # send to the first sign
     $buffer->sendQueue(device => "COM4");
     # send to another sign

@@ -1426,6 +1426,7 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 =back
 
 
+  
   # typical use on a windows machine
   $buffer->sendQueue(
       device => "COM4"
@@ -1444,6 +1445,7 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
+  
   # send to the first sign
   $buffer->sendQueue(device => "COM4");
   # send to another sign
