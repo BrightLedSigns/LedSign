@@ -1224,16 +1224,16 @@ Version 1.00
           effect => "scroll",
           speed => 3
   );
-  $buffer->send(device => "COM3");
+  $buffer->sendQueue(device => "COM3");
   # 
-  # note that the send() method does not empty the buffer, so if we
+  # note that the sendQueue() method does not empty the buffer, so if we
   # have a second sign, on a different serial port, we can send everything
   # to it as well...
-  $buffer->send(device => "COM4");
+  $buffer->sendQueue(device => "COM4");
 
 =head1 DESCRIPTION
 
-LedSign::Mini is used to send text and graphics via RS232 to our smaller set of LED Signs and badges.
+LedSign::Mini is used to send text and graphics via RS232 to our smaller set of LED Signs and badges.  It is part of the larger LedSign module, which provides similar interfaces for other LED signs that use different protocols.
 
 =head1 CONSTRUCTOR
 
@@ -1393,7 +1393,7 @@ B<runslots>: One of either "auto" or "none".  If the runslots parameter is not s
 
 =over 4
 
-=item:
+=item
 auto - with runslots set to auto, a command is sent to the sign to display the message slots that were created by the queued messages sent to the sign.
 
 =item
@@ -1410,16 +1410,16 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 =back
 
   # typical use on a windows machine
-  $buffer->send(
+  $buffer->sendQueue(
       device => "COM4"
   );
   # typical use on a unix/linux machine
-  $buffer->send(
+  $buffer->sendQueue(
       device => "/dev/ttyUSB0"
   );
   # using optional arguments, set baudrate to 9600, and sleep 1/2 a second
   # between sending packets.  
-  $buffer->send(
+  $buffer->sendQueue(
       device => "COM8",
       baudrate => "9600",
       packetdelay => 0.5
@@ -1428,14 +1428,14 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
   # send to the first sign
-  $buffer->send(device => "COM4");
+  $buffer->sendQueue(device => "COM4");
   # send to another sign
-  $buffer->send(device => "COM6");
+  $buffer->sendQueue(device => "COM6");
   # send to a badge connected on COM7
   #   this works fine for plain text, but won't work well for
   #   pictures and icons...you'll have to create a new
   #   sign object with devicetype "badge" for them to render correctly
-  $buffer->send(device => "COM7"); 
+  $buffer->sendQueue(device => "COM7"); 
 
 =head1 AUTHOR
 
