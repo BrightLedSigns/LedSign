@@ -225,19 +225,17 @@ It supports three optional arguments: runslots, baudrate, and packetdelay:
 - __baudrate__: defaults to 38400, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 - __packetdelay__: An amount of time, in seconds, to wait, between sending packets to the sign.  The default is 0.25, and seems to work well.  If you see "XX" on your sign while sending data, increasing this value may help. Must be greater than zero.  For reference, each text message generates 3 packets, and each 16x32 portion of an image sends one packet.  There's also an additional, short, packet sent after all message and image packets are delivered. So, if you make packetdelay a large number...and have lots of text and/or images, you may be waiting a while to send all the data.
 
-
-
-    
-    # typical use on a windows machine
     $buffer->sendQueue(
         device => "COM4"
-    );
-    # typical use on a unix/linux machine
+    ); # typical use on a windows machine
+    
     $buffer->sendQueue(
         device => "/dev/ttyUSB0"
-    );
+    ); # typical use on a unix/linux machine
+
     # using optional arguments, set baudrate to 9600, and sleep 1/2 a second
     # between sending packets.  
+    
     $buffer->sendQueue(
         device => "COM8",
         baudrate => "9600",
@@ -247,10 +245,12 @@ It supports three optional arguments: runslots, baudrate, and packetdelay:
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
     
-    # send to the first sign
     $buffer->sendQueue(device => "COM4");
-    # send to another sign
+    # send to the first sign
+    
     $buffer->sendQueue(device => "COM6");
+    # send to another sign
+    
     # send to a badge connected on COM7
     #   this works fine for plain text, but won't work well for
     #   pictures and icons...you'll have to create a new
