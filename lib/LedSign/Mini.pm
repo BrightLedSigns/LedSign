@@ -1428,14 +1428,14 @@ B<packetdelay>: An amount of time, in seconds, to wait, between sending packets 
   $buffer->sendQueue(
       device => "COM4"
   ); # typical use on a windows machine
-  
+    
   $buffer->sendQueue(
       device => "/dev/ttyUSB0"
   ); # typical use on a unix/linux machine
-
+    
   # using optional arguments, set baudrate to 9600, and sleep 1/2 a second
   # between sending packets.  
-  
+      
   $buffer->sendQueue(
       device => "COM8",
       baudrate => "9600",
@@ -1447,10 +1447,10 @@ Note that if you have multiple connected signs, you can send to them without cre
   
   $buffer->sendQueue(device => "COM4");
   # send to the first sign
-  
+    
   $buffer->sendQueue(device => "COM6");
   # send to another sign
-  
+    
   # send to a badge connected on COM7
   #   this works fine for plain text, but won't work well for
   #   pictures and icons...you'll have to create a new
