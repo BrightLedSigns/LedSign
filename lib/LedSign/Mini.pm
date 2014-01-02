@@ -299,7 +299,7 @@ sub validateSlots {
 sub sendCmd {
     my $this=shift;
     my %params=@_;
-    my @validcmds=qw(runslots brightness);
+    my @validcmds=qw(runslots settime);
     if (!exists $params{cmd}) {
         croak("Parameter cmd must be supplied to sendCmd");
     } else {
@@ -325,33 +325,29 @@ sub sendCmd {
             slots => \@runslots
         );
     } 
-    if ($cmd eq "brightness") {
-        $this->sendBrightness(
-            baudrate => $params{baudrate}, 
-            packetdelay => $params{packetdelay},
-            device => $params{device},
-        );
+    if ( $params{setting} eq "settime" ) {
+        use POSIX qw(strftime);
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for settime setting");
+        }
+        if ( $params{value} ne "now" and $params{value} !~ /^\d+$/ ) {
+            croak("Invalid value [$params{value}] specified for settime");
+        }
+        my $cmd;
+        $cmd=pack("C*",(0x02,0x34));
+        my $time;
+        if ( $value eq "now" ) {
+            $time=POSIX::strftime("%y%m%d%H%M%S%w", localtime(time) );
+        } else {
+            $time=POSIX::strftime("%y%m%d%H%M%S%w", localtime($value) );
+        }
+        # loop, unpack into 2 char thingies, pack as literal vals?
+        # add checksum
+        # ???
+        $cmd.=pack("C*),(0x04));
+
     }
-}
-sub sendBrightness {
-    my $this=shift;
-    my %params=@_;
-    my $baudrate=$this->checkbaudrate($params{baudrate});
-    my $packetdelay=$this->checkpacketdelay($params{packetdelay});
-    my $serial;
-    if ( defined $params{debug} ) {
-        $serial = Device::MiniLED::SerialTest->new();
-    } else {
-        $serial = $this->connect(
-            device   => $params{device},
-            baudrate => $params{baudrate}
-        );
-    }
-    my $bits=pack( "C*", ( 0x02, 0x32, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0xFF) );
-    print "sending bits...\n";
-    my $count=$serial->write($bits) * 8;
-    print "wrote [$count] bits\n";
-    select(undef,undef,undef,$packetdelay);
+
 }
 sub sendRunSlots {
     my $this=shift;
