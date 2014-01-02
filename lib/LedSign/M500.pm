@@ -119,6 +119,9 @@ sub sendCmd {
     if ( !grep( /^$params{setting}$/, @validcmds ) ) {
         croak("Invalid value [$params{setting}] for parameter setting");
     }
+    if ( $params{setting} eq "test" ) {
+        # fill this in later
+    }
     if ( $params{setting} eq "settime" ) {
         if ( !exists( $params{value} ) ) {
             croak("No value parameter specified for settime setting");
@@ -811,17 +814,14 @@ Version 0.92
 
   #!/usr/bin/perl
   #
-  # adjust the brightness on a sign 
-  #  connected to /dev/ttyUSB0 (linux)
-  #  value can be either: 
-  #      A - Automatic Brightness 
-  #      1 to 8  - Manual Brightness (1 being the brightest)
-  #
+  # set the time on the sign to the current time
+  #  on this machine
+  # 
   use LedSign::M500;
   my $sign=LedSign::M500->new();
   $sign->sendCmd(
-      setting => "brightness",
-      value => 1
+      setting => "settime",
+      value => "now"
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
  
@@ -1018,42 +1018,16 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
 =over 4
 
-=item B<brightness>
+=item B<alarm>
 
   #
-  # adjust the brightness on a sign 
-  #  value is mandatory can be 1 to 8, with 1 being the brightest,
-  #    or, you can supply A as brightness, and it will adjust automatically
+  # turn the alarm on or off
   #
   $sign->sendCmd(
-      setting => "brightness",
-      value => 1
+      setting => "alarm",
+      value => "on",
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
-
-=item B<reset>
-
-  #
-  # does a soft reset on the sign
-  #   data is not erased
-  #
-  $sign->sendCmd(
-      setting => "reset",
-  );
-  $sign->sendQueue(device => "/dev/ttyUSB0");
-
-=item B<cleardata>
-
-  #
-  # clears all data on the sign
-  #  note: this command takes 30 seconds or so to process, during
-  #        which time, the send method will block waiting on a response
-  #  
-  $sign->sendCmd(
-      setting => "cleardata",
-  );
-  $sign->sendQueue(device => "/dev/ttyUSB0");
-
 
 =item B<setttime>
 
@@ -1072,42 +1046,13 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
   );
   $sign->sendQueue(device => "/dev/ttyUSB0");
 
+=item B<test>
 
-=item B<signmode>
-
-This sets the sign's mode to either "expand" or "basic".  
-
-Basic Mode: All configured message slots are displayed, regardless of any programmed start and stop times.  Brightness is fixed in AUTO mode, and can't be adjusted manually.
-
-Expand Mode: Once the sign is set to expand mode, you can manually select the display mode to either show all configured message slots, or to use the start and stop times (see L</"displaymode">).  Similarly, you can adjust the brightness manually (see L</"brightness">).
-
-Valid values: basic, expand
-
-  #
-  # example of setting sign to expand mode
-  #
+  # display a test pattern on the sign, where every LED is lit
   $sign->sendCmd(
-      setting => "signmode",
-      value => "expand"
+      setting => "test",
   );
-
-=item B<displaymode>
-
-This sets the sign's displaymode.  You must first set signmode to expand to use this feature (see L</"signmode">).
-
-Setting displaymode to allslots will display all configured message slots, regardless of start and stop time settings.
-
-Setting displaymode to bytime will dislplay configured message slots according to their defined start and stop times.  Note that the current version of this API doesn't allow you to define start and stop times for the message slots.
-
-Valid values: allslots, bytime
-
-  #
-  # example of setting displaymode to allslots
-  #
-  $sign->sendCmd(
-      setting => "displaymode",
-      value => "allslots"
-  );
+  $sign->sendQueue(device => "/dev/ttyUSB0");
 
 =back
 

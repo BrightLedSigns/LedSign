@@ -341,7 +341,6 @@ sub sendQueue {
     foreach my $obj ( @{ $this->_factory->objects() } ) {
         $count++;
         my $objtype = $obj->{'objtype'};
-
         #
         # note that this could be a msg object, or a command object.
         # both have an encode method
