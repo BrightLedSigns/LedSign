@@ -31,11 +31,9 @@ sub _init {
     my (%params) = @_;
     if ( !defined( $params{devicetype} ) ) {
         croak("Parameter [devicetype] must be present (sign or badge)");
-        return undef;
     }
     if ( $params{devicetype} ne "sign" and $params{devicetype} ne "badge" ) {
         croak("Invalue value for [devicetype]: \"$params{devicetype}\"");
-        return undef;
     }
     $this->{can_image}  = 1;
     $this->{device}     = $params{device};
@@ -71,7 +69,6 @@ sub queuePix {
     }
     if ( !defined( $params{data} ) ) {
         croak("Parameter [data] must be present");
-        return undef;
     }
     my $pixobj = $this->_factory->pixmap(
         type       => "pixmap",
@@ -99,7 +96,6 @@ sub queueIcon {
     }
     if ( !exists( $params{data} ) ) {
         croak("Parameter [data] must be present");
-        return undef;
     }
     my $iconobj = $this->_factory->icon(
         devicetype => $this->{devicetype},
@@ -121,14 +117,12 @@ sub queueMsg {
     }
     if ( !defined( $params{data} ) ) {
         croak("Parameter [data] must be present");
-        return undef;
     }
     if ( !defined( $params{speed} ) ) {
         $params{speed} = 4;
     }
     if ( $params{speed} !~ /^[1-5]$/ ) {
         croak("Parameter [speed] must be between 1 (slowest) and 5 (fastest)");
-        return undef;
     }
 
     # effect
@@ -140,7 +134,6 @@ sub queueMsg {
         my @effects = keys(%{EFFECTMAP()});
         if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
-            return undef;
         }
     }
     if ( exists( $params{slot} ) ) {
@@ -216,7 +209,6 @@ sub sendQueue {
     my (%params) = @_;
     if ( !defined( $params{device} ) ) {
         croak("Must supply the device name.");
-        return undef;
     }
     my $baudrate=$this->checkbaudrate($params{baudrate});
     my $packetdelay=$this->checkpacketdelay($params{packetdelay});
@@ -352,11 +344,7 @@ sub sendRunSlots {
     if ( $bits ) {
         $serial->write($bits);
         select(undef,undef,undef,$packetdelay);
-    } else {
-        # we'll just literally do nothing...
-        #$serial->write($nothing);
-        #select(undef,undef,undef,$packetdelay);
-    }
+    } 
 }
 sub packets {
     my $this   = shift;
@@ -695,29 +683,23 @@ sub _init {
     $this->{objtype} = "pixmap";
     if ( !defined( $this->{height} ) ) {
         croak("Height must exist,and be 1 or greater");
-        return undef;
     }
     if ( defined( $this->{height} ) && $this->{height} < 1 ) {
         croak("Height must be greater than 1");
-        return undef;
     }
     if ( !defined( $this->{width} ) ) {
         croak("Width must exist,and be between 1 and 256");
-        return undef;
     }
     if ( defined( $this->{width} )
         && ( $this->{width} < 1 or $this->{width} > 256 ) )
     {
         croak("Width must be between 1 and 256");
-        return undef;
     }
     if ( !defined( $this->{data} ) ) {
         croak("Parameter [data] must be present");
-        return undef;
     }
     if ( !defined( $this->{devicetype} ) ) {
         croak("Parameter [devicetype] must be present");
-        return undef;
     }
     if ( $this->{devicetype} eq "sign" ) {
         $this->{tilesize}   = 16;
@@ -749,11 +731,9 @@ sub _init {
     $this->{objtype} = "icon";
     if ( !defined( $this->{data} ) ) {
         croak("Parameter [data] must be present");
-        return undef;
     }
     if ( !defined( $this->{devicetype} ) ) {
         croak("Parameter [devicetype] must be present");
-        return undef;
     }
     if ( $this->{devicetype} eq "sign" ) {
         $this->{tilesize}   = "16";
@@ -790,11 +770,9 @@ sub new {
         croak(
 "Parameter [type] must be supplied, valid values are [pix] or [icon]"
         );
-        return undef;
     }
     if ( $params{type} ne "pix" and $params{type} ne "icon" ) {
         croak("Parameter [type] invalid, valid values are [pix] or [icon]");
-        return undef;
     }
     $this->{type} = $params{type};
     if ( defined( $params{name} ) ) {
@@ -804,7 +782,6 @@ sub new {
         }
         else {
             croak("No clipart named [$params{name}] exists");
-            return undef;
         }
     }
     else {
@@ -1379,6 +1356,43 @@ You can "roll your own" icons as well.
   $buffer->queueMsg(
       data => "Flashing Icon: [$icon]"
   );
+
+=head2 $buffer->sendCmd
+
+Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
+
+Settings you can change, with examples:
+
+=over
+
+=item B<runslots>
+
+The "runslots" setting allows you to select which of the preprogrammed message slots (1-8) are shown on the sign.
+
+  use LedSign::Mini;
+  select STDOUT;$|=1; # unbuffer STDOUT
+  my $buffer=LedSign::Mini->new(devicetype => "sign");
+  #
+  # add 7 messages
+  # 
+  for (1..7) {
+       $buffer->queueMsg(data=>"Msg $_");
+  }    
+  # add an 8th message, that's just a space
+  $buffer->queueMsg(data=>" ");
+  # send the messages, and display the blank one
+  $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
+  # sleep for 10 seconds, then show the 1st and 2nd message
+  print STDOUT "sleeping for 10 seconds...\n";
+  sleep 10;
+  $buffer->sendCmd(
+      device => '/dev/ttyUSB0',
+      cmd => "runslots",
+      slots => [1,2]
+  );
+  
+
+=back
 
 =head2 $buffer->sendQueue
 

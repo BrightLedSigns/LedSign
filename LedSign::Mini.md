@@ -180,6 +180,39 @@ You can "roll your own" icons as well.
         data => "Flashing Icon: [$icon]"
     );
 
+## $buffer->sendCmd
+
+Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
+
+Settings you can change, with examples:
+
+- __runslots__
+
+    The "runslots" setting allows you to select which of the preprogrammed message slots (1-8) are shown on the sign.
+
+            use LedSign::Mini;
+            select STDOUT;$|=1; # unbuffer STDOUT
+            my $buffer=LedSign::Mini->new(devicetype => "sign");
+            #
+            # add 7 messages
+            # 
+            for (1..7) {
+                 $buffer->queueMsg(data=>"Msg $_");
+            }    
+            # add an 8th message, that's just a space
+            $buffer->queueMsg(data=>" ");
+            # send the messages, and display the blank one
+            $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
+            # sleep for 10 seconds, then show the 1st and 2nd message
+            print STDOUT "sleeping for 10 seconds...\n";
+            sleep 10;
+            $buffer->sendCmd(
+                device => '/dev/ttyUSB0',
+                cmd => "runslots",
+                slots => [1,2]
+            );
+            
+
 ## $buffer->sendQueue
 
 The sendQueue method connects to the sign over RS232 and sends all the data accumulated from prior use of the $buffer->queueMsg/Pix/Icon methods.  The only mandatory argument is 'device', denoting which serial device to send to.

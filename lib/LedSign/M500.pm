@@ -849,33 +849,24 @@ Note that this message isn't sent to the sign until you call the L<< /"$sign->se
 =item B<data>
 
 The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
-  
+
+Valid values for time tags are shown in the code example above. See L</"font"> for valid font values, and L</"color"> for valid color values.
+
   # font, color, and time tag example
   $sign->queueMsg(
-      data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
+      data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+              "<c:RED>The time is <t:A>"
   ) 
   # valid values for time tags
   # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
   # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
   # I - short spelling of day (SUN, MON, TUE, etc)
   # I - long spelling of day (Sunday, Monday, Tuesday, etc)
-
-Valid values for time tags are shown in the code example above. See L</"font"> for valid font values, and L</"color"> for valid color values.
-
-Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
-
-  # two lines of text, assuming the sign is at least 16 pixels high
-  $sign->queueMsg(
-      data => "<f:SS7>This is line 1\nThis is line2",
-      align => "LEFT"
-  );
+  
 
 =item B<effect>
 
-Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK 
- 
-Defaults to HOLD
-
+Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, and CLOCK. Defaults to HOLD
 
 =item B<speed>
 
@@ -922,9 +913,7 @@ Default value: 0000
 
 =over
 
-=item B<caveat>
-
-The start, stop, and rundays parameters are only used if both of these conditions are met:
+=item B<caveat> The start, stop, and rundays parameters are only used if both of these conditions are met:
 
 =over
 
@@ -1005,10 +994,7 @@ This behavior may be useful to some people that want to, for example, keep a con
   #
   $sign->sendQueue(device => "COM3");
 
-
 =back
-
-
 
 =head2 $sign->sendCmd
 
@@ -1033,10 +1019,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
   #
   # sets the internal date and time clock on the sign. 
-  # You can supply the string # "now", and it will sync the sign's clock  
+  #
+  # You can supply the string "now", and it will sync the sign's clock  
   # to the time on the computer running  this api.
   #
-  # You can supply an integer representing the time and date
+  # You can also supply an integer representing the time and date
   # as unix epoch seconds.  The perl "time" function, for example, returns
   # this type of value
   #
@@ -1067,9 +1054,11 @@ It supports one optional argument: baudrate
 =over 4
 
 =item
+
 B<baudrate>: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
 =back
+
 
   # typical use on a windows machine
   $sign->sendQueue(
@@ -1098,11 +1087,9 @@ Kerry Schwab, C<< <sales at brightledsigns.com> >>
 
 =head1 SUPPORT
 
- You can find documentation for this module with the perldoc command.
+You can find documentation for this module with the perldoc command.  C<perldoc LedSign::M500>
   
-   perldoc LedSign::M500
-  
- You can also look for information at:
+You can also look for information at:
 
 =over 
 

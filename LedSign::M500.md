@@ -59,36 +59,24 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 - __data__
 
     The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
-      
-
-        # font, color, and time tag example
-        $sign->queueMsg(
-            data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text<c:RED>The time is <t:A>"
-        ) 
-        # valid values for time tags
-        # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
-        # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
-        # I - short spelling of day (SUN, MON, TUE, etc)
-        # I - long spelling of day (Sunday, Monday, Tuesday, etc)
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
-    Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
-
-        # two lines of text, assuming the sign is at least 16 pixels high
-        $sign->queueMsg(
-            data => "<f:SS7>This is line 1\nThis is line2",
-            align => "LEFT"
-        );
+            # font, color, and time tag example
+            $sign->queueMsg(
+                data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+                        "<c:RED>The time is <t:A>"
+            ) 
+            # valid values for time tags
+            # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
+            # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
+            # I - short spelling of day (SUN, MON, TUE, etc)
+            # I - long spelling of day (Sunday, Monday, Tuesday, etc)
+            
 
 - __effect__
 
-    Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK 
-     
-
-    Defaults to HOLD
-
-
+    Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, and CLOCK. Defaults to HOLD
 
 - __speed__
 
@@ -134,10 +122,7 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Default value: 0000
 
-    - __caveat__
-
-        The start, stop, and rundays parameters are only used if both of these conditions are met:
-
+    - __caveat__ The start, stop, and rundays parameters are only used if both of these conditions are met:
         - Ensure that ["signmode"](#signmode) is set to expand
         - Ensure that ["displaymode"](#displaymode) is set to bytime
 
@@ -211,12 +196,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
         #
         $sign->sendQueue(device => "COM3");
 
-
-
-
-
-
-
 ## $sign->sendCmd
 
 Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
@@ -237,10 +216,11 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
         #
         # sets the internal date and time clock on the sign. 
-        # You can supply the string # "now", and it will sync the sign's clock  
+        #
+        # You can supply the string "now", and it will sync the sign's clock  
         # to the time on the computer running  this api.
         #
-        # You can supply an integer representing the time and date
+        # You can also supply an integer representing the time and date
         # as unix epoch seconds.  The perl "time" function, for example, returns
         # this type of value
         #
@@ -269,6 +249,8 @@ It supports one optional argument: baudrate
 
 - __baudrate__: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
+
+
     # typical use on a windows machine
     $sign->sendQueue(
         device => "COM4"
@@ -296,11 +278,10 @@ Kerry Schwab, `<sales at brightledsigns.com>`
 
 # SUPPORT
 
-    You can find documentation for this module with the perldoc command.
-     
-     perldoc LedSign::M500
-    
-    You can also look for information at:
+You can find documentation for this module with the perldoc command.  `perldoc LedSign::M500`
+  
+
+You can also look for information at:
 
 - Our Website:
 [http://www.brightledsigns.com/developers](http://www.brightledsigns.com/developers)
