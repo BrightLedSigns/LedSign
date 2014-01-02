@@ -48,11 +48,11 @@ It has been tested on both Linux and Windows, and should theoretically run anywh
 
 Since each of the supported signs is a bit different in terms of capability, the usage docs are within the documentation for each type of sign:
 
-- [LedSign::Mini](http://search.cpan.org/perldoc?LedSign%3A%3AMini) - For our smaller, inexpensive LED badges and signs.  It probably works with most LED badges that are 12x36 or 12x48 pixels, as they come from the same manufacturer.  It probably also works with most 16 pixel high LED signs that are sold as "desktop" led signs.  
-- [LedSign::M500](http://search.cpan.org/perldoc?LedSign%3A%3AM500) - For signs on our website that have a model number starting with M500, M1000, or M1500.  It's a very popular, low-cost, single line series of signs available from many sellers.  If the original windows software is entited "single line", "taioping", or "messager (sic)", and the communications settings require 9600 baud, this library will likely work with the sign.  M500 signs that require 2400 baud use an older, incompatible protocol, and won't work with this software.
+- [LedSign::Mini](./LedSign%3A%3AMini.md) - For our smaller, inexpensive LED badges and signs.  It probably works with most LED badges that are 12x36 or 12x48 pixels, as they come from the same manufacturer.  It probably also works with most 16 pixel high LED signs that are sold as "desktop" led signs.  
+- [LedSign::M500](./LedSign%3A%3AM500.md) - For signs on our website that have a model number starting with M500, M1000, or M1500.  It's a very popular, low-cost, single line series of signs available from many sellers.  If the original windows software is entited "single line", "taioping", or "messager (sic)", and the communications settings require 9600 baud, this library will likely work with the sign.  M500 signs that require 2400 baud use an older, incompatible protocol, and won't work with this software.
  
 
-- [LedSign::BB](http://search.cpan.org/perldoc?LedSign%3A%3ABB) - For signs that we have labeled with product id's that start with BB or SB.  It should also work with signs where the original windows-based software is called "Wonderful LED 2006" or "Moving Sign 2007".  
+- [LedSign::BB](./LedSign%3A%3ABB.md) - For signs that we have labeled with product id's that start with BB or SB.  It should also work with signs where the original windows-based software is called "Wonderful LED 2006" or "Moving Sign 2007".  
 
 Depending on the model of sign, there may be support for various features
 
@@ -65,7 +65,7 @@ Depending on the model of sign, there may be support for various features
 
 # RELATED SOFTWARE
 
-- The [LedSign::Mini](http://search.cpan.org/perldoc?LedSign%3A%3AMini) portion of this module supercedes the previous, standalone, [Device::MiniLED](http://search.cpan.org/perldoc?Device%3A%3AMiniLED) module that supported the same type of sign.  Aside from supporting a wider variety of signs, this module includes bug fixes and features that will not be backported to the older module.
+- The [LedSign::Mini](./LedSign%3A%3AMini.md) portion of this module supercedes the previous, standalone, [Device::MiniLED](http://search.cpan.org/perldoc?Device%3A%3AMiniLED) module that supported the same type of sign.  Aside from supporting a wider variety of signs, this module includes bug fixes and features that will not be backported to the older module.
 
 - We also created and maintain a python library, called [pyledsign](https://github.com/BrightLedSigns/pyledsign) that is mostly a straight port of this software to the [Python](http://www.python.org/) language.  Because it is ported from this software, it typically lags a bit in feature and/or model support.
 

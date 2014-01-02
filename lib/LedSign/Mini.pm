@@ -1402,12 +1402,15 @@ none - with runslots set to none, the messages are still sent to the sign, but n
 =back
 
 =item
+
 B<baudrate>: defaults to 38400, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
 =item
+
 B<packetdelay>: An amount of time, in seconds, to wait, between sending packets to the sign.  The default is 0.25, and seems to work well.  If you see "XX" on your sign while sending data, increasing this value may help. Must be greater than zero.  For reference, each text message generates 3 packets, and each 16x32 portion of an image sends one packet.  There's also an additional, short, packet sent after all message and image packets are delivered. So, if you make packetdelay a large number...and have lots of text and/or images, you may be waiting a while to send all the data.
 
 =back
+
 
   # typical use on a windows machine
   $buffer->sendQueue(
