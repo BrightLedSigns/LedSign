@@ -1,0 +1,19 @@
+# sending timer info to the mini sign
+use Time::Piece;
+# where "now" is the desired timer date/time to count down to
+$now=Time::Piece->new();
+$foo=$now->strptime("01/01/2000","%m/%d/%Y");
+my $diff=$now-$foo;
+$diff=int($diff / (60*60*24));
+printf "%s\n",$foo->yy;
+print "foo is [$foo], now is [$now] diff is [$diff]\n";
+#
+# send to the sign
+# a) 0x02 0x36
+# b) diff as 2 hex  0x13 0xFC = 5112
+# c) The hour, 1am = 0x01, 1pm = 0x0d
+# d) minute, hex encoded
+# e) seconds
+# f) one null byte
+# g) checksum
+
