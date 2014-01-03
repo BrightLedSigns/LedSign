@@ -326,7 +326,6 @@ sub sendCmd {
         );
     } 
     if ( $params{setting} eq "settime" ) {
-        use POSIX qw(strftime);
         if ( !exists( $params{value} ) ) {
             croak("No value parameter specified for settime setting");
         }
@@ -335,15 +334,14 @@ sub sendCmd {
         }
         my $cmd;
         $cmd=pack("C*",(0x02,0x34));
-        my $time;
+        use Time::Piece;
+        my $t;
         if ( $value eq "now" ) {
-            $time=POSIX::strftime("%y%m%d%H%M%S%w", localtime(time) );
-        } else {
-            $time=POSIX::strftime("%y%m%d%H%M%S%w", localtime($value) );
-        }
-        # loop, unpack into 2 char thingies, pack as literal vals?
-        # add checksum
-        # ???
+            $value=time;
+        } 
+        $t=Time::Piece->new($value);
+        $cmd.=pack("C*",$t->yy,$t->mon,$t->mday,$t->hour,$t->min,
+              $t->sec,$t->wday)
         $cmd.=pack("C*),(0x04));
 
     }
