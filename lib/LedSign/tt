@@ -1,9 +1,0 @@
-use Time::Piece;
-$t=Time::Piece->new($value);
-$out=pack("C*",map(hex,$t->yy,$t->mon,$t->mday,$t->hour,$t->min,$t->sec,$t->_wday));
-my $total=0x34;
-for (unpack("(C2)*",$out)) {
-   $total+=$_;
-}
-$total %= 256;
-print $out . pack("C",$total);

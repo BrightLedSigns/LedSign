@@ -261,7 +261,7 @@ sub sendQueue {
         $this->sendRunSlots(
             baudrate => $params{baudrate}, 
             packetdelay => $params{packetdelay},
-            device => $params{device},
+            device => $params{device}
         );
     } elsif (ref($runslots) eq "ARRAY") {
         my @slots=$this->validateSlots(@{$runslots});
@@ -299,7 +299,7 @@ sub validateSlots {
 sub sendCmd {
     my $this=shift;
     my %params=@_;
-    my @validcmds=qw(runslots settime);
+    my @validcmds=qw(runslots settime setcountdown);
     if (!exists $params{cmd}) {
         croak("Parameter cmd must be supplied to sendCmd");
     } else {
@@ -325,31 +325,82 @@ sub sendCmd {
             slots => \@runslots
         );
     } 
-    if ( $params{setting} eq "settime" ) {
+    if ( $cmd eq "settime" ) {
         if ( !exists( $params{value} ) ) {
-            croak("No value parameter specified for settime setting");
+            croak("No value parameter specified for settime cmd");
         }
         if ( $params{value} ne "now" and $params{value} !~ /^\d+$/ ) {
             croak("Invalid value [$params{value}] specified for settime");
         }
-        my $cmd;
-        $cmd=pack("C*",(0x02,0x34));
+        my $data;
+        $data=pack("C*",(0x02,0x34));
         use Time::Piece;
         my $t;
-        if ( $value eq "now" ) {
-            $value=time;
-        } 
+        my $value=$params{value};
         $t=Time::Piece->new($value);
-        $cmd.=pack("C*",$t->yy,$t->mon,$t->mday,$t->hour,$t->min,
-              $t->sec,$t->wday)
-        $cmd.=pack("C*),(0x04));
-
+        $data.=pack("C*",
+          map(hex,$t->yy,$t->mon,$t->mday,$t->hour,$t->min,$t->sec,$t->_wday));
+        $this->sendData(
+            baudrate => $params{baudrate}, 
+            packetdelay => $params{packetdelay},
+            device => $params{device},
+            checksum => 1,
+            data => $data
+        );
     }
 
+    if ( $cmd eq "setcountdown" ) {
+        if ( !exists( $params{value} ) ) {
+            croak("No value parameter specified for setcountdown cmd");
+        }
+
+        if ( $params{value} !~ /^\d+$/ ) {
+            croak("Invalid value [$params{value}] specified for setcountdown");
+        }
+        use Time::Piece;
+        my $tp=Time::Piece->new();
+        my $start=$tp->strptime("01/01/2000","%m/%d/%Y");
+        my $then=Time::Piece->new($params{value});
+        my $diff=$then-$start;
+        $diff=int($diff/(60*60*24));
+        # diff is now the number of days since 1/1/2000
+        # send to the sign
+        # a) 0x02 0x36
+        # b) diff as 2 hex  0x13 0xFC = 5112
+        # c) The hour, 1am = 0x01, 1pm = 0x0d
+        # d) minute, hex encoded
+        # e) seconds
+        # f) one null byte
+        # g) checksum
+        my $data;
+        $data=pack("C*",(0x02,0x36));
+        print "diff is [$diff]\n";
+        $data.=pack("n",$diff);
+        $data.=pack("C*",$then->hour,$then->min,$then->sec,0x00,0x00);
+        $this->sendData(
+            baudrate => $params{baudrate}, 
+            packetdelay => $params{packetdelay},
+            device => $params{device},
+            checksum => 1,
+            data => $data 
+        );
+    }
 }
-sub sendRunSlots {
+sub sendData {
     my $this=shift;
     my %params=@_;
+    my $data=$params{data};
+    my $i;
+    my $csum;
+    if ( defined $params{checksum} && $params{checksum} ) {
+        for (unpack("C*",$data)) {
+            $i++;
+            next if ($i == 1); # skip the 0x02 
+            $csum+=$_;
+        }
+        $csum %= 256;
+        $data.=pack("C",$csum);
+    }
     my $baudrate=$this->checkbaudrate($params{baudrate});
     my $packetdelay=$this->checkpacketdelay($params{packetdelay});
     my $serial;
@@ -361,10 +412,22 @@ sub sendRunSlots {
             baudrate => $params{baudrate}
         );
     }
+    print "sending...\n";
+    open(HD,'|/usr/bin/hd');
+    print HD $data;
+    close HD;
+    $serial->write($data);
+    select(undef,undef,undef,$packetdelay);
+}
+sub sendRunSlots {
+    my $this=shift;
+    my %params=@_;
     my $bits = $this->getshowbits(@{$params{slots}});
     if ( $bits ) {
-        $serial->write($bits);
-        select(undef,undef,undef,$packetdelay);
+        $this->sendData(
+            data => $bits,
+            %params
+        );
     } 
 }
 sub packets {
@@ -422,8 +485,7 @@ sub processTags {
     if ( $type eq "badge" ) {
         $normal = pack( "C*", 0xff, 0x80 );
         $flash  = pack( "C*", 0xff, 0x81 );
-    }
-    else {
+    } else {
         $normal = pack( "C*", 0xff, 0x8f );
         $flash  = pack( "C*", 0xff, 0x8f );
     }
@@ -437,6 +499,35 @@ sub processTags {
         my $imagetag   = $1;
         my $substitute = $this->getkey($imagetag);
         $msgdata =~ s/$imagetag/$substitute/g;
+    }
+    #
+    # date/time tags
+    #
+    if ($type eq "badge") {
+        #badge doesn't support date time tags
+        $msgdata =~ s/<d:[^>]*>//g;
+    } elsif ($type eq "sign") {
+        my %sub = (
+         '%y' => '\DY', '%d' => '\DD',
+         '%m' => '\DL', '%H' => '\DH',
+         '%M' => '\DM', '%S' => '\DS',
+         '%1' => '\D1', '%2' => '\D2',
+         '%3' => '\D3', '%4' => '\D4',
+        );
+        while ( $msgdata =~ /(<d:([^>]*)>)/g ) {
+            my $tag=$1;
+            my $origtag=$tag;
+            my $contents=$2;
+            while ($contents =~ s/%([^%])//) {
+                my $spec=$1;
+                if (exists($sub{"%$spec"})) {
+                  $tag=~s/%$spec/$sub{"%$spec"}/g;
+                } 
+            }
+            $tag=~s/^<d://g;
+            $tag=~s/>$//g;
+            $msgdata=~s#$origtag#$tag#g;
+        }
     }
     return $msgdata;
 }
@@ -1250,22 +1341,77 @@ LedSign::Mini is used to send text and graphics via RS232 to our smaller set of 
 
 This family of devices support a maximum of 8 messages that can be sent to the sign.  These messages can consist of three different types of content, which can be mixed together in the same message..plain text, pixmap images, and 2-frame anmiated icons.
 
-The $buffer->queueMsg method has three required arguments...data, effect, and speed:
+The $buffer->queueMsg method has three required arguments...effect, speed, and data:
 
 =over 4
 
-=item
-B<data>:   The data to be sent to the sign. Plain text, optionally with $variables that reference pixmap images or animated icons
+=item B<effect>
 
-=item
-B<effect>: One of "hold", "scroll", "snow", "flash" or "hold+flash"
+One of "hold", "scroll", "snow", "flash" or "hold+flash"
 
-=item
-B<speed>:  An integer from 1 to 5, where 1 is the slowest and 5 is the fastest 
+=item B<speed>
+
+An integer from 1 to 5, where 1 is the slowest and 5 is the fastest 
+
+=item B<data>
+
+The data to be sent to the sign. Plain text, optionally with $variables that reference pixmap images or animated icons. Tags are also supported to display flashing, dates/times, and countdown functionality:
+
+=over
+
+=item B<Flashing Tags>
+
+To have a portion of the message flash on and off, you can insert the following tags. This works with no issues on badges.  For signs, the flash and normal tags are actually the same tag...they just toggle the flashing state.
+
+  $buffer->queueMsg(
+      data => "Some <f:flash>flashing text<f:normal> in a message"
+  );
+
+=item B<Date and Time Tags>
+
+Badges do not support date/time tags at all.  For signs, you can insert the following items within a date/time tag:
+
+Dates and Times
+
+  # %y - two digit year 
+  # %d - two digit day of month
+  # %m - two digit month (01 = January, etc) 
+  # %H - two digit hour
+  # %M - two digit minute
+  # %S - two digit seconds
+  #
+  # display a clock
+  $buffer->queueMsg( data => '<d:%H:%M:%S>', effect => 'hold');
+  # display the current date in mm/dd/yy format
+  $buffer->queueMsg( data => '<d:%m/%d/%y>');
+  
+Countdown functionality. Each tag represents the time until the currently set countdown date.
+
+  # %1 - Days until the current countdown date (DDD)
+  # %2 - Hours/Minutes until the current countdown date (HHHH:MM)
+  # %3 - Hours/Minutes/Seconds  (HHHH:MM:SS)
+  # %4 - Seconds (SSSSS).  If higher than 10000, will display ">10K"
+  #
+  use LedSign::Mini;
+  my $buffer=LedSign::Mini->new(devicetype => "sign");
+  use Time::Piece;
+  $now=Time::Piece->new();
+  $nextyear=$now->year+1;
+  $then=$now->strptime("01/01/$nextyear","%m/%d/%Y");
+  $buffer->sendCmd(
+      device => '/dev/ttyUSB0',
+      cmd => 'setcountdown',
+      value => $then->epoch
+  );
+  $buffer->queueMsg(data => '<d:%1> days until the next new year');  
+  $buffer->sendQueue(device => '/dev/ttyUSB0');
 
 =back
 
-The queueMsg method returns a number that indicates how many messages have been created.  This may be helpful to ensure you don't try to add a 9th message, which will fail:
+
+=back
+
+The queueMsg method returns a number that indicates how many messages have been created.  This may be helpful to ensure you don't try to add a 9th message, which will fail, as the signs only have 8 message slots:
 
   my $buffer=LedSign::Mini->new(devicetype => "sign");
   for (1..9) {
@@ -1277,6 +1423,8 @@ The queueMsg method returns a number that indicates how many messages have been 
        # on the ninth loop, $number will be undef, and a warning will be
        # generated
   }
+
+
 
 =head2 $buffer->queuePix
 
@@ -1412,7 +1560,37 @@ The "runslots" setting allows you to select which of the preprogrammed message s
       slots => [1,2]
   );
 
+=item B<settime>
+
+Setting the sign's time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
+
+The settime command sets the current time and date on the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
+
+  #
+  $buffer->sendCmd(
+      cmd => "settime",
+      value => time
+  );
+
+=item B<setcountdown>
+
+Setting the sign's countdown target time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
+
+The setcountdown command sets the target time and date for the countdown timer that's within the the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the target time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
+
+  # set the countdown timer to 10 days from now
+  my $countdownto=time() + (10*60*60*24);
+  $buffer->sendCmd(
+      cmd => "setcountdown",
+      value => time
+  );
+
+B<Note>: Make sure you use the L</"settime"> command to set the internal time...the countdown functionality depends on the current time being set correctly on the sign.
+
 =back
+
+
+
 
 =head2 $buffer->sendQueue
 
