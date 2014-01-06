@@ -12,10 +12,10 @@ if ($IS_WINDOWS) {
 }
 
 my $builder = Module::Build->new(
-    module_name         => 'Device::LEDSign',
-    license             => 'Artistic_2_0',
+    module_name         => 'LedSign',
+    license             => 'FreeBSD',
     dist_author         => q{Kerry Schwab <sales@brightledsigns.com>},
-    dist_version_from   => 'lib/Device/LEDSign.pm',
+    dist_version_from   => 'lib/LedSign.pm',
     release_status      => 'stable',
     configure_requires => {
         'Module::Build' => 0,
@@ -29,8 +29,6 @@ my $builder = Module::Build->new(
         'Carp'       => 0
       
     },
-    add_to_cleanup     => [ 'Device-LEDSign-*' ],
-    create_makefile_pl => 'traditional',
+    add_to_cleanup     => [ 'LedSign-*' ],
 );
-
 $builder->create_build_script();

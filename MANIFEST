@@ -1,13 +1,8 @@
-Build.PL
-Changes
-lib/Device/LEDSign.pm
-MANIFEST			This list of files
-README
-t/00-load.t
-t/boilerplate.t
-t/functional.t
-t/manifest.t
-t/pod-coverage.t
-t/pod.t
 ignore.txt
+README
+MANIFEST
+META.yml
+META.json
+Changes
 Makefile.PL
+Build.PL

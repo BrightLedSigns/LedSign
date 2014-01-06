@@ -3,6 +3,7 @@ use base qw(LedSign);
 use strict;
 use warnings;
 use Carp;
+$LedSign::Mini::VERSION="1.00";
 #
 # Shared Constants / Globals
 #
@@ -30,7 +31,7 @@ sub _init {
     my $this = shift;
     my (%params) = @_;
     if ( !defined( $params{devicetype} ) ) {
-        croak("Parameter [devicetype] must be present (sign or badge)");
+        $params{devicetype}="sign";
     }
     if ( $params{devicetype} ne "sign" and $params{devicetype} ne "badge" ) {
         croak("Invalue value for [devicetype]: \"$params{devicetype}\"");
@@ -214,8 +215,8 @@ sub sendQueue {
     my $packetdelay=$this->checkpacketdelay($params{packetdelay});
 
     my $serial;
-    if ( defined $params{debug} ) {
-        $serial = Device::MiniLED::SerialTest->new();
+    if ( $params{device} eq "DEBUG" ) {
+        $serial = LedSign::Mini::SerialTest->new();
     } else {
         $serial = $this->connect(
             device   => $params{device},
@@ -236,6 +237,7 @@ sub sendQueue {
     }
 
     # send an initial null, wakes up the sign
+    print STDOUT "writing initial null...\n";
     $serial->write( pack( "C", 0x00 ) );
 
     # sleep a short while to avoid overrunning sign
@@ -248,16 +250,19 @@ sub sendQueue {
         $msgobj->{data} = $this->processTags( $msgobj->{data} );
         my @packets = $msgobj->encode( devicetype => $params{devicetype} );
         foreach my $data (@packets) {
+            print STDOUT "calling serial->write\n";
             $serial->write($data);
             # sleep a short while to avoid overrunning sign
             select( undef, undef, undef, $packetdelay );
         }
     }
     foreach my $data ( $this->packets() ) {
+        print STDOUT "data loop calling serial->write\n";
         $serial->write($data);
         select( undef, undef, undef, $packetdelay );
     }
     if ( $runslots eq "auto" ) {
+        print STDOUT "calling sendRunSlots\n";
         $this->sendRunSlots(
             baudrate => $params{baudrate}, 
             packetdelay => $params{packetdelay},
@@ -280,6 +285,10 @@ sub sendQueue {
         );
     } else {
         croak("Invalid value [$runslots] for parameter [runslots]");
+    }
+
+    if ($params{device} eq "DEBUG") {
+        return $serial->dump();
     }
 }
 sub validateSlots {
@@ -404,18 +413,18 @@ sub sendData {
     my $baudrate=$this->checkbaudrate($params{baudrate});
     my $packetdelay=$this->checkpacketdelay($params{packetdelay});
     my $serial;
-    if ( defined $params{debug} ) {
-        $serial = Device::MiniLED::SerialTest->new();
+    if ( $params{device} eq "DEBUG" ) {
+        $serial = LedSign::Mini::SerialTest->new();
     } else {
         $serial = $this->connect(
             device   => $params{device},
             baudrate => $params{baudrate}
         );
     }
-    print "sending...\n";
-    open(HD,'|/usr/bin/hd');
-    print HD $data;
-    close HD;
+    #print "sending...\n";
+    #open(HD,'|/usr/bin/hd');
+    #print HD $data;
+    #close HD;
     $serial->write($data);
     select(undef,undef,undef,$packetdelay);
 }
@@ -1324,9 +1333,13 @@ Version 1.00
 
 LedSign::Mini is used to send text and graphics via RS232 to our smaller set of LED Signs and badges.  It is part of the larger LedSign module, which provides similar interfaces for other LED signs that use different protocols.
 
+This sub-module of the larger LEDSign module is the replacement for L<Device::MiniLED|http://search.cpan.org/perldoc?Device%3A%3AMiniLED>, which is now deprecated. 
+
 =head1 CONSTRUCTOR
 
 =head2 new
+
+The constructor has one optional argument...B<devicetype>. If not specified, defaults to "sign".  The B<devicetype> argument drives a few internal options, like rendering of images (16 pixels vs 12 pixels), support for the internal clock (signs have this, badges do not).  Plain text messages will work if this setting is wrong, but you may have issues with images and clock functionality. 
 
   my $buffer=LedSign::Mini->new(
          devicetype => $devicetype
@@ -1337,13 +1350,13 @@ LedSign::Mini is used to send text and graphics via RS232 to our smaller set of 
 
 =head1 METHODS
 
-=head2 $buffer->queueMsg
+=head2 queueMsg
 
 This family of devices support a maximum of 8 messages that can be sent to the sign.  These messages can consist of three different types of content, which can be mixed together in the same message..plain text, pixmap images, and 2-frame anmiated icons.
 
 The $buffer->queueMsg method has three required arguments...effect, speed, and data:
 
-=over 4
+=over 
 
 =item B<effect>
 
@@ -1426,7 +1439,7 @@ The queueMsg method returns a number that indicates how many messages have been 
 
 
 
-=head2 $buffer->queuePix
+=head2 queuePix
 
 The queuePix method allow you to create simple, single color pixmaps that can be inserted into a message. There are two ways to create a picture.
 
@@ -1474,7 +1487,7 @@ helpful in generating these strings.
   );
 
 
-=head2 $buffer->queueIcon
+=head2 queueIcon
 
 The $buffer->queueIcon method is almost identical to the $buffer->queuePix method. 
 The queueIcon method accepts either a 16x32 pixel image (for signs), or a 
@@ -1526,100 +1539,33 @@ You can "roll your own" icons as well.
       data => "Flashing Icon: [$icon]"
   );
 
-=head2 $buffer->sendCmd
 
-Adds a configuration messsage to change some setting on the sign.  The first argument, setting, is mandatory in all cases.   The second argument, value, is optional sometimes, and required in other cases.
-
-Settings you can change, with examples:
-
-=over
-
-=item B<runslots>
-
-The "runslots" setting allows you to select which of the preprogrammed message slots (1-8) are shown on the sign.
-
-  use LedSign::Mini;
-  select STDOUT;$|=1; # unbuffer STDOUT
-  my $buffer=LedSign::Mini->new(devicetype => "sign");
-  #
-  # add 7 messages
-  # 
-  for (1..7) {
-       $buffer->queueMsg(data=>"Msg $_");
-  }    
-  # add an 8th message, that's just a space
-  $buffer->queueMsg(data=>" ");
-  # send the messages, and display the blank one
-  $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
-  # sleep for 10 seconds, then show the 1st and 2nd message
-  print STDOUT "sleeping for 10 seconds...\n";
-  sleep 10;
-  $buffer->sendCmd(
-      device => '/dev/ttyUSB0',
-      cmd => "runslots",
-      slots => [1,2]
-  );
-
-=item B<settime>
-
-Setting the sign's time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
-
-The settime command sets the current time and date on the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
-
-  #
-  $buffer->sendCmd(
-      cmd => "settime",
-      value => time
-  );
-
-=item B<setcountdown>
-
-Setting the sign's countdown target time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
-
-The setcountdown command sets the target time and date for the countdown timer that's within the the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the target time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
-
-  # set the countdown timer to 10 days from now
-  my $countdownto=time() + (10*60*60*24);
-  $buffer->sendCmd(
-      cmd => "setcountdown",
-      value => time
-  );
-
-B<Note>: Make sure you use the L</"settime"> command to set the internal time...the countdown functionality depends on the current time being set correctly on the sign.
-
-=back
-
-
-
-
-=head2 $buffer->sendQueue
+=head2 sendQueue
 
 The sendQueue method connects to the sign over RS232 and sends all the data accumulated from prior use of the $buffer->queueMsg/Pix/Icon methods.  The only mandatory argument is 'device', denoting which serial device to send to.
 
 It supports three optional arguments: runslots, baudrate, and packetdelay:
 
-=over 4
+=over 
 
-=item
-B<runslots>: One of either "auto" or "none".  If the runslots parameter is not supplied, it defaults to "auto".
+=item B<runslots>
+: One of either "auto" or "none".  If the runslots parameter is not supplied, it defaults to "auto".
 
-=over 4
+=over 
 
-=item
-auto - with runslots set to auto, a command is sent to the sign to display the message slots that were created by the queued messages sent to the sign.
+=item B<auto> 
+: With runslots set to auto, a command is sent to the sign to display the message slots that were created by the queued messages sent to the sign.
 
-=item
-none - with runslots set to none, the messages are still sent to the sign, but no command to display them is sent. The sign will continue to run whatever numbered slots it was showing before the new messages were sent.  Using this in combination with the $buffer->sendCmd(runslots,@slots) command allows you full control over which messages are displayed, and when.
+=item B<none> 
+: With runslots set to none, the messages are still sent to the sign, but no command to display them is sent. The sign will continue to run whatever numbered slots it was showing before the new messages were sent.  Using this in combination with the $buffer->sendCmd(runslots,@slots) command allows you full control over which messages are displayed, and when.
 
 =back
 
-=item
+=item B<baudrate>
+: defaults to 38400, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that L<Device::SerialPort|http://search.cpan.org/perldoc?Device%3A%3ASerialPort> or L<Win32::Serialport|http://search.cpan.org/perldoc?Win32%3A%3ASerialPort> thinks is valid
 
-B<baudrate>: defaults to 38400, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
-
-=item
-
-B<packetdelay>: An amount of time, in seconds, to wait, between sending packets to the sign.  The default is 0.25, and seems to work well.  If you see "XX" on your sign while sending data, increasing this value may help. Must be greater than zero.  For reference, each text message generates 3 packets, and each 16x32 portion of an image sends one packet.  There's also an additional, short, packet sent after all message and image packets are delivered. So, if you make packetdelay a large number...and have lots of text and/or images, you may be waiting a while to send all the data.
+=item B<packetdelay>
+: An amount of time, in seconds, to wait, between sending packets to the sign.  The default is 0.25, and seems to work well.  If you see "XX" on your sign while sending data, increasing this value may help. Must be greater than zero.  For reference, each text message generates 3 packets, and each 16x32 portion of an image sends one packet.  There's also an additional, short, packet sent after all message and image packets are delivered. So, if you make packetdelay a large number...and have lots of text and/or images, you may be waiting a while to send all the data.
 
 =back
 
@@ -1654,6 +1600,76 @@ Note that if you have multiple connected signs, you can send to them without cre
   #   pictures and icons...you'll have to create a new
   #   sign object with devicetype "badge" for them to render correctly
   $buffer->sendQueue(device => "COM7"); 
+
+
+=head2 sendCmd
+
+Sends a messsage, typically to change some setting on the sign.  Since it's sending to the sign immediately, it has a mandatory B<device> argument which works the same as in the L</sendQueue> method.  It also supports the B<baudrate> and B<packetdelay> arguments. See the L</sendQueue> method for detail on these arguments.
+
+The argument which specifies the command to send, B<cmd>, is mandatory in all cases.   The next argument, B<value>, is optional sometimes, and required in other cases.  
+
+Settings you can change, with examples:
+
+=over
+
+=item B<runslots>
+
+The "runslots" setting allows you to select which of the preprogrammed message slots (1-8) are shown on the sign.
+
+  use LedSign::Mini;
+  select STDOUT;$|=1; # unbuffer STDOUT
+  my $buffer=LedSign::Mini->new(devicetype => "sign");
+  #
+  # add 7 messages
+  # 
+  for (1..7) {
+       $buffer->queueMsg(data=>"Msg $_");
+  }    
+  # add an 8th message, that's just a space
+  $buffer->queueMsg(data=>" ");
+  # send the messages, and display the blank one
+  $buffer->sendQueue(device=> '/dev/ttyUSB0',runslots => [8]); 
+  # sleep for 10 seconds, then show the 1st and 2nd message
+  print STDOUT "sleeping for 10 seconds...\n";
+  sleep 10;
+  $buffer->sendCmd(
+      device => '/dev/ttyUSB0',
+      cmd => "runslots",
+      slots => [1,2]
+  );
+
+You can send an empty list, but the sign will then typically flash the word "EMPTY!".  If you want the sign to appear off, insert a message consisting of a space character into a numbered slot, and run just that slot.
+
+=item B<settime>
+
+Setting the sign's time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
+
+The settime command sets the current time and date on the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
+
+  #
+  $buffer->sendCmd(
+      device => '/dev/ttyUSB0',
+      cmd => "settime",
+      value => time()
+  );
+
+=item B<setcountdown>
+
+Setting the sign's countdown target time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
+
+The setcountdown command sets the target time and date for the countdown timer that's within the the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the target time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
+
+  # set the countdown timer to 10 days from now
+  my $countdownto=time() + (10*60*60*24);
+  $buffer->sendCmd(
+      device => '/dev/ttyUSB0',
+      cmd => "setcountdown",
+      value => time
+  );
+
+B<Note>: Make sure you use the L</"settime"> command to set the internal time...the countdown functionality depends on the current time being set correctly on the sign.
+
+=back
 
 =head1 AUTHOR
 
@@ -1699,31 +1715,36 @@ Inspiration from similar work:
 
 =back
 
-
-
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 Kerry Schwab.
+Copyright (c) 2013 Kerry Schwab & Bright Signs
+All rights reserved.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at:
+This program is free software; you can redistribute it and/or modify it under the terms of the the FreeBSD License . You may obtain a copy of the full license at:
 
-L<http://www.perlfoundation.org/artistic_license_2_0>
+L<http://www.freebsd.org/copyright/freebsd-license.html|http://www.freebsd.org/copyright/freebsd-license.html>
 
-Aggregation of this Package with a commercial distribution is always
-permitted provided that the use of this Package is embedded; that is,
-when no overt attempt is made to make this Package's interfaces visible
-to the end user of the commercial distribution. Such use shall not be
-construed as a distribution of this Package.
 
-The name of the Copyright Holder may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+=over
+
+=item *
+
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+=item *
+
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+=item *
+
+Neither the name of the organization nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+=back
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut
