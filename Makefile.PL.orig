@@ -17,6 +17,7 @@ WriteMakefile
                            %SERIAL,
                            'Carp' => 0,
                            'POSIX' => 0,
+                           'Software::License' => 0,
                            'Test::More' => 0
                          },
           'INSTALLDIRS' => 'site',

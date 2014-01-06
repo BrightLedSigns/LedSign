@@ -1,0 +1,22 @@
+---
+abstract: 'Perl library to communicate with various models of programmable LED signs'
+author:
+  - 'Kerry Schwab <sales@brightledsigns.com>'
+build_requires:
+  Test::More: 0
+configure_requires:
+  Module::Build: 0
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.120351'
+license: open_source
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: LedSign
+requires:
+  Carp: 0
+  Device::SerialPort: 0
+  POSIX: 0
+resources:
+  license: http://www.freebsd.org/copyright/freebsd-license.html
+version: 0.01

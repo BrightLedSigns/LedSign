@@ -156,8 +156,7 @@ sub queueMsg {
         devicetype => $this->{devicetype},
         %params
     );
-
-    #return $this->{msgcount};
+    return $mobj->{number};
 }
 
 sub getshowbits {

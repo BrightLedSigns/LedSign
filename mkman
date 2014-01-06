@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use File::Basename;
+open(FIND,"find . -type f -print | sort|");
+while (<FIND>) {
+    chomp;
+    s#^\./##g;
+    next if m#^\.git#;
+    my $bn=basename($_);
+    next if ($bn =~ m#^m.$#);
+    next if ($bn =~ m#\.tar$#);
+    next if ($bn =~ m#^MYMETA#);
+    next if ($bn eq "Build");
+    next if (m#^_build/#);
+    next if (m#^_blib/#);
+    next if (m#^blib/#);
+    next if (m#\.orig$#);
+    print "$_\n";
+}

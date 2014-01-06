@@ -18,11 +18,11 @@ sub endtoend {
     $sign->queueMsg( data => "Plain Text", effect => 'scroll', speed => 2);
     $sign->queueMsg( data => $pix, effect => 'hold', speed => "3");
     my $check=$sign->queueMsg( data => $icon, effect => 'snow', speed => 5);
-    ok($check eq "3", "Third message created returned 3");
+    ok($check eq "2", "Third message created should return 2, got [$check]");
     # use the special device name DEBUG
     my $result=$sign->sendQueue(device => 'DEBUG');
     my $length=length($result);
-    ok ($length == 970, "Expected 970 bytes, Got $length Bytes");
+    ok ($length == 967, "Expected 967 bytes, Got $length Bytes");
     my @checksums = qw (9f 77 b7 f7 5f 78 b8 f8 a5 79 b9 f9 db fa);
     for (my $i =0; $i <= 13; $i++) {
         my $checksum=$checksums[$i];

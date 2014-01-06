@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.005;
 use POSIX qw(strftime);
-
+$LedSign::BB::VERSION="1.00";
 #
 # Shared Constants / Globals
 #
