@@ -3,6 +3,7 @@ use base qw(LedSign);
 use strict;
 use warnings;
 use Carp;
+use 5.008001;
 $LedSign::Mini::VERSION="1.00";
 #
 # Shared Constants / Globals
@@ -236,7 +237,6 @@ sub sendQueue {
     }
 
     # send an initial null, wakes up the sign
-    print STDOUT "writing initial null...\n";
     $serial->write( pack( "C", 0x00 ) );
 
     # sleep a short while to avoid overrunning sign
@@ -249,19 +249,16 @@ sub sendQueue {
         $msgobj->{data} = $this->processTags( $msgobj->{data} );
         my @packets = $msgobj->encode( devicetype => $params{devicetype} );
         foreach my $data (@packets) {
-            print STDOUT "calling serial->write\n";
             $serial->write($data);
             # sleep a short while to avoid overrunning sign
             select( undef, undef, undef, $packetdelay );
         }
     }
     foreach my $data ( $this->packets() ) {
-        print STDOUT "data loop calling serial->write\n";
         $serial->write($data);
         select( undef, undef, undef, $packetdelay );
     }
     if ( $runslots eq "auto" ) {
-        print STDOUT "calling sendRunSlots\n";
         $this->sendRunSlots(
             baudrate => $params{baudrate}, 
             packetdelay => $params{packetdelay},

@@ -1,48 +1,39 @@
 #!perl -T
-use 5.006;
+use 5.008001;
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use LedSign::Mini;
+use LedSign::M500;
+use LedSign::BB;
+use Digest::MD5 qw(md5_hex);
 
-plan tests => 17;
+plan tests => 3;
 
-sub endtoend {
-    my $sign=LedSign::Mini->new(devicetype => 'sign');
-    my $pix=$sign->queuePix(
-        clipart => 'cross16'
-    ); 
-    my $icon=$sign->queueIcon(
-        clipart => 'smile16'
-    );
-    $sign->queueMsg( data => "Plain Text", effect => 'scroll', speed => 2);
-    $sign->queueMsg( data => $pix, effect => 'hold', speed => "3");
-    my $check=$sign->queueMsg( data => $icon, effect => 'snow', speed => 5);
-    ok($check eq "2", "Third message created should return 2, got [$check]");
+sub minisign {
+    my $buf=LedSign::Mini->new();
+    my $pix=$buf->queuePix(clipart =>'cross16'); 
+    my $icon=$buf->queueIcon(clipart => 'smile16');
+    $buf->queueMsg( data => "Plain Text", effect => 'scroll', speed => 2);
+    $buf->queueMsg( data => $pix, effect => 'hold', speed => "3");
+    my $check=$buf->queueMsg( data => $icon, effect => 'snow', speed => 5);
+    ok($check eq "2", "LedSign::Mini queueMsg iter 3 should return 2, got [$check]");
     # use the special device name DEBUG
-    my $result=$sign->sendQueue(device => 'DEBUG');
+    my $result=$buf->sendQueue(device => 'DEBUG');
     my $length=length($result);
-    ok ($length == 967, "Expected 967 bytes, Got $length Bytes");
-    my @checksums = qw (9f 77 b7 f7 5f 78 b8 f8 a5 79 b9 f9 db fa);
-    for (my $i =0; $i <= 13; $i++) {
-        my $checksum=$checksums[$i];
-        my $offset=($i+1)*69;
-        my $byte=sprintf("%x",ord(substr($result,$offset,1)));
-        ok( $checksum eq $byte, "Checksum number:${i} $byte == $checksum");
-    } 
-  
+    my $md5=md5_hex($result); 
+    my $exp="e6af1c78fad24d1e50823645c2142a53";
+    ok ($md5 eq $exp,"LedSign::Mini: Data MD5 check: want [$exp] got[$md5]");
 }
-sub clipart {
+sub minisignclipart {
     my $clipart=LedSign::Mini::Clipart->new(type => 'pix');
     $clipart->set(name => 'heart16');
     my $data=$clipart->data; 
-    my $compare="000000000000000000000000000000000000000000000000000".
-                "000000000000000001100011000000001001010010000001000".
-                "010000100000100000001010000010000000001000000100000".
-                "001000000010000000100000000100000100000000001000100".
-                "0000000000101000000000000001000000000000000000000000";
-    ok ($data eq $compare, "Clipart Data Matched Reference Data");
+    my $md5=md5_hex($data);
+    my $exp="0889d1561a56868a8cc4c1c52a2b1ce6";
+    ok ($md5 eq $exp,
+        "LedSign::Mini::Clipart Data MD5 check: want[$exp] got[$md5]");
 }
 
-endtoend();
-clipart();
+minisign();
+minisignclipart();

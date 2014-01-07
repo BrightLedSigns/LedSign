@@ -2,7 +2,7 @@ package LedSign;
 use Carp;
 use strict;
 use warnings;
-use 5.005;
+use 5.008001;
 $LedSign::VERSION="0.01";
 #
 # Use Win32::Serial port on Windows otherwise, use Device::SerialPort

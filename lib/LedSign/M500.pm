@@ -3,7 +3,7 @@ use base qw(LedSign);
 use Carp;
 use strict;
 use warnings;
-use 5.005;
+use 5.008001;
 use POSIX qw(strftime);
 $LedSign::M500::VERSION="1.00";
 #

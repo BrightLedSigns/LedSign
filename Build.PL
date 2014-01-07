@@ -1,4 +1,4 @@
-use 5.006;
+use 5.008001;
 use strict;
 use warnings FATAL => 'all';
 use Module::Build;
@@ -20,10 +20,12 @@ my $builder = Module::Build->new(
     configure_requires => {
         'Module::Build' => 0,
     },
-    build_requires => {
+    test_requires  => {
         'Test::More' => 0,
+        'Digest::MD5' => 0,
     },
     requires => {
+        perl         => 5.008001,
         %SERIAL,
         'POSIX'      => 0,
         'Carp'       => 0
