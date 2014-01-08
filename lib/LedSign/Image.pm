@@ -1,9 +1,15 @@
+# currently unfinished, unused, untested
+# this is planned to be a unified interface to
+# create and manipulate simple string-oriented
+# graphics for the LedSign Module
+#
+#
 package LedSign::Image;
 use 5.008001;
 use strict;
 use Carp;
 
-use constant default_color_to_character => {
+use constant default_color_to_char => {
     'black'         => ' ',
     'clear'         => ' ',
     '#000000'       => ' ',
@@ -25,7 +31,7 @@ sub new {
     my $self = bless {
         -rows_array         => [],
         -width              => 0,
-        -color_to_character => $class->default_color_to_character,
+        -color_to_char => $class->default_color_to_char,
     }, $class;
 
     if ( defined( my $filename = delete $param{'-file'} ) ) {
@@ -166,33 +172,33 @@ sub xy {
 
     my $rows_array = $self->{'-rows_array'};
     if ( @_ == 3 ) {
-        return $self->character_to_color( substr( $rows_array->[$y], $x, 1 ) );
+        return $self->char_to_color( substr( $rows_array->[$y], $x, 1 ) );
     }
     else {
-        substr( $rows_array->[$y], $x, 1 ) = $self->color_to_character($color);
+        substr( $rows_array->[$y], $x, 1 ) = $self->color_to_char($color);
     }
 }
 
-sub color_to_character {
+sub color_to_char {
     my ( $self, $color ) = @_;
-    if ( defined( my $char = $self->{'-color_to_character'}->{$color} ) ) {
+    if ( defined( my $char = $self->{'-color_to_char'}->{$color} ) ) {
         return $char;
     }
     if ( length($color) == 1 ) {
         return $color;
     }
-    if ( defined( my $char = $self->{'-color_to_character'}->{'other'} ) ) {
+    if ( defined( my $char = $self->{'-color_to_char'}->{'other'} ) ) {
         return $char;
     }
     croak "Unknown color: $color";
 }
 
-sub character_to_color {
+sub char_to_color {
     my ( $self, $char ) = @_;
     if ( length($char) == 0 ) {
         return undef;
     }
-    if ( defined( my $color = $self->{'-character_to_color'}->{$char} ) ) {
+    if ( defined( my $color = $self->{'-char_to_color'}->{$char} ) ) {
         return $color;
     }
     return $char;

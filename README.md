@@ -22,7 +22,7 @@ It has been tested on both Linux and Windows, and should theoretically run anywh
     #   use LedSign::Mini;
     #
     use LedSign::M500;
-    my $buffer=LedSign::Mini->new(devicetype => "sign");
+    my $buffer=LedSign::M500->new();
     #
     # queueMsg queues a message to be sent with the sendQueue method
     #
