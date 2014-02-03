@@ -113,35 +113,52 @@ sub sendCmd {
     my ($this)   = shift;
     my (%params) = @_;
     if ( !defined( $params{setting} ) ) {
-        croak("Parameter [data] must be present");
+        croak("Parameter [setting] must be present");
     }
     my @validcmds = qw(test settime alarm setslots);
-    if ( !grep( /^$params{setting}$/, @validcmds ) ) {
-        croak("Invalid value [$params{setting}] for parameter setting");
+    my $setting=$params{setting};
+    my $value=$params{value};
+    my $msg = "~128";
+    if ( !grep( /^$setting$/, @validcmds ) ) {
+        croak("Invalid value [$setting] for parameter setting");
     }
-    if ( $params{setting} eq "test" ) {
-        # fill this in later
-    }
-    if ( $params{setting} eq "settime" ) {
+    if ( $setting eq "settime" ) {
         if ( !exists( $params{value} ) ) {
             croak("No value parameter specified for settime setting");
         }
         if ( $params{value} ne "now" and $params{value} !~ /^\d+$/ ) {
             croak("Invalid value [$params{value}] specified for settime");
         }
-    }
-    if ( $params{setting} eq "alarm" ) {
+        $msg .= '~E';
+        if ( $value eq "now" ) {
+            $msg .= POSIX::strftime( "%u1%y%m%d%H%M%S", localtime(time) );
+        }
+        else {
+            $msg .= POSIX::strftime( "%u1%y%m%d%H%M%S", localtime($value) );
+        }
+    } elsif ( $setting eq "alarm" ) {
         if ( !exists( $params{value} ) ) {
             croak("No value parameter specified for alarm setting");
         }
         if ( $params{value} ne "on" and $params{value} ne "off" ) {
             croak("Invalid value [$params{value}] specified for alarm");
         }
+        if ( $value eq "on" ) {
+            $msg .= '~B';
+        }
+        else {
+            $msg .= '~b';
+        }
+    } elsif ( $setting eq "test" ) {
+        $msg .= '~t';
     }
-    if ( $params{setting} eq "setslots" ) {
-        if ( $params{settings} ) { }
-    }
-    my $cobj = $this->_factory->control( %params, );
+    $msg .= "\r\r\r";
+    $this->sendData(
+        baudrate => $params{baudrate},
+        packetdelay => $params{packetdelay},
+        device => $params{device},
+        data => $msg
+    );
 }
 
 sub queueMsg {
@@ -310,6 +327,60 @@ sub _connect {
     # clear the line
     return $serial;
 }
+sub sendData {
+    my $this = shift;
+    my %params=@_;
+    my $data=$params{data};
+    if ( !defined( $params{device} ) ) {
+        croak("Must supply the device name.");
+        return undef;
+    }
+    my $baudrate=$this->checkbaudrate($params{baudrate});
+    my $packetdelay=$this->checkpacketdelay($params{packetdelay});
+    my $serial;
+    if ( defined $params{debug} ) {
+        $serial = LedSign::M500::SerialTest->new();
+    } else {
+        $serial = $this->_connect(
+            device   => $params{device},
+            baudrate => $baudrate
+        );
+    }
+    $serial->write($data);
+    select(undef,undef,undef,$packetdelay);
+}
+sub checkbaudrate {
+    my $this=shift;
+    my $baudrate=shift;
+    my @validrates = qw( 0 50 75 110 134 150 200 300 600
+      1200 1800 2400 4800 9600 19200 38400 57600
+      115200 230400 460800 500000 576000 921600 1000000
+      1152000 2000000 2500000 3000000 3500000 4000000
+    );
+    if (defined($baudrate)) {
+        if ( !grep { $_ eq $baudrate } @validrates ) {
+            croak( 'Invalid baudrate [' . $baudrate . ']' );
+        }
+        return $baudrate;
+    } else {
+        return 9600;
+    }
+}
+sub checkpacketdelay {
+    my $this=shift;
+    my $packetdelay=shift;
+    if (defined($packetdelay)) {
+        if ( $packetdelay =~ m#^\d*\.{0,1}\d*$# ) {
+            return $packetdelay;
+        } else {
+            croak(  'Invalid value ['
+                  . $packetdelay
+                  . '] for parameter packetdelay' );
+        }
+    } else {
+        return 0.20;
+    }
+}
 
 sub sendQueue {
     my $this = shift;
@@ -318,61 +389,22 @@ sub sendQueue {
         croak("Must supply the device name.");
         return undef;
     }
-
-    my $baudrate;
-    if ( defined( $params{baudrate} ) ) {
-        my @validrates = qw( 0 50 75 110 134 150 200 300 600
-          1200 1800 2400 4800 9600 19200 38400 57600
-          115200 230400 460800 500000 576000 921600 1000000
-          1152000 2000000 2500000 3000000 3500000 4000000
-        );
-        if ( !grep { $_ eq $params{baudrate} } @validrates ) {
-            croak( 'Invalid baudrate [' . $params{baudrate} . ']' );
-        }
-        else {
-            $baudrate = $params{baudrate};
-        }
-    }
-    else {
-        $baudrate = "9600";
-    }
-
-    my $packetdelay;
-    if ( defined( $params{packetdelay} ) ) {
-        if ( $params{packetdelay} =~ m#^\d*\.{0,1}\d*$# ) {
-            $packetdelay = $params{packetdelay};
-        }
-        else {
-            croak(  'Invalid value ['
-                  . $params{packetdelay}
-                  . '] for parameter packetdelay' );
-        }
-    }
-    else {
-        $packetdelay = 0.20;
-    }
-
+    my $baudrate=$this->checkbaudrate($params{baudrate});
+    my $packetdelay=$this->checkpacketdelay($params{packetdelay});
     my $serial;
     if ( defined $params{debug} ) {
         $serial = LedSign::M500::SerialTest->new();
-    }
-    else {
+    } else {
         $serial = $this->_connect(
             device   => $params{device},
             baudrate => $baudrate
         );
     }
 
-    # send an initial null, wakes up the sign
     my $count = 0;
     foreach my $obj ( @{ $this->_factory->objects() } ) {
         $count++;
         my $objtype = $obj->{'objtype'};
-
-        #
-        # note that this could be a msg object, or a command object.
-        # both have an encode method
-        #
         my @packets = $obj->encode();
         $serial->read_const_time(1000);
         $serial->read_char_time(100);
@@ -447,16 +479,6 @@ sub msg {
     return $msg;
 }
 
-sub control {
-    my $this     = shift;
-    my (%params) = @_;
-    my $obj      = LedSign::M500::Config->new( %params, factory => $this );
-    push( @{ $this->{objects} }, $obj );
-    $this->{count}++;
-    my $count = $this->{count};
-    return $count;
-}
-
 sub count {
     my $this  = shift;
     my $count = $this->{count};
@@ -472,14 +494,11 @@ sub objects {
         return [];
     }
 }
-
 #
-# Superclass for Msg and Config, basically "things" that you send to the send
+# object to hold a message and it's associated data and parameters
 #
-#   Msg is text messages that display on the sign
-#   Control is things like adjusting the brightness or doing a soft reset
-#
-package LedSign::M500::Command;
+package LedSign::M500::Msg;
+our @CARP_NOT = qw(LedSign::M500);
 
 sub new {
     my $that     = shift;
@@ -490,6 +509,7 @@ sub new {
     foreach my $key ( keys(%params) ) {
         $this->{$key} = $params{$key};
     }
+    $this->{'objtype'} = 'msg';
     $this->setwait(2000);
     return $this;
 }
@@ -544,72 +564,44 @@ sub encode {
 
     # STX
     my $msgdata = '';
-    if ( $objtype eq "msg" ) {
-        $msg = '~128';
+    $msg = '~128';
 
-        # message slot (valid slots are 0..9 and A..Z, 36 slots total);
-        $msg .= '~f' . $this->{slot};
+    # message slot (valid slots are 0..9 and A..Z, 36 slots total);
+    $msg .= '~f' . $this->{slot};
 
-        # effect
-        my $effect = LedSign::M500::EFFECTMAP->{ $this->{effect} };
-        if ( !$effect ) {
-            $effect = LedSign::M500::EFFECTMAP()->{'AUTO'};
-        }
-        $msg .= $effect;
-        my $color;
-        if ( exists( $this->{color} ) ) {
-            $color = LedSign::M500::COLORMAP->{ $this->{color} };
-        }
-        else {
-            $color = LedSign::M500::COLORMAP->{'BRIGHTRED'};
-        }
-        $msg .= $color;
-        my $font;
-        if ( exists( $this->{font} ) ) {
-            $font = LedSign::M500::FONTMAP->{ $this->{font} };
-        }
-        else {
-            $font = LedSign::M500::FONTMAP->{'DEFAULT'};
-        }
-        $msg .= $font;
-        if ( exists( $this->{speed} ) ) {
-            my $speed = LedSign::M500::SPMAP->{ $this->{speed} };
-            $msg .= $speed;
-        }
-        $msgdata = $this->processTags();
-        if ( exists( $this->{pause} ) ) {
-            my $pause = LedSign::M500::PAUSEMAP->{ $this->{pause} };
-            $msg .= $pause;
-        }
-        $msgdata .= "\r\r\r";
-    } elsif ( $objtype eq "config" ) {
-        $msg .= "~128";
-        my $setting = $this->{setting};
-        my $value   = $this->{value};
-        if ( $setting eq "settime" ) {
-            $msg .= '~E';
-            if ( $value eq "now" ) {
-                $msg .= POSIX::strftime( "%u1%y%m%d%H%M%S", localtime(time) );
-            }
-            else {
-                $msg .= POSIX::strftime( "%u1%y%m%d%H%M%S", localtime($value) );
-            }
-        }
-        if ( $setting eq "alarm" ) {
-            if ( $value eq "on" ) {
-                $msg .= '~B';
-            }
-            else {
-                $msg .= '~b';
-            }
-        }
-        if ( $setting eq "test" ) {
-            $msg .= '~t';
-        }
-        $msg .= "\r\r\r";
+    # effect
+    my $effect = LedSign::M500::EFFECTMAP->{ $this->{effect} };
+    if ( !$effect ) {
+        $effect = LedSign::M500::EFFECTMAP()->{'AUTO'};
     }
+    $msg .= $effect;
+    my $color;
+    if ( exists( $this->{color} ) ) {
+        $color = LedSign::M500::COLORMAP->{ $this->{color} };
+    }
+    else {
+        $color = LedSign::M500::COLORMAP->{'BRIGHTRED'};
+    }
+    $msg .= $color;
+    my $font;
+    if ( exists( $this->{font} ) ) {
+        $font = LedSign::M500::FONTMAP->{ $this->{font} };
+    }
+    else {
+        $font = LedSign::M500::FONTMAP->{'DEFAULT'};
+    }
+    $msg .= $font;
+    if ( exists( $this->{speed} ) ) {
+        my $speed = LedSign::M500::SPMAP->{ $this->{speed} };
+        $msg .= $speed;
+    }
+    $msgdata = $this->processTags();
+    if ( exists( $this->{pause} ) ) {
+        my $pause = LedSign::M500::PAUSEMAP->{ $this->{pause} };
+        $msg .= $pause;
+    }
+    $msgdata .= "\r\r\r";
     $msg .= $msgdata;
-
     # End of Text - ETX
     # Supposed to be a checksum - sign seems to ignore it though.
     # EOT - End of Transmission
@@ -618,37 +610,6 @@ sub encode {
     return @encoded;
 }
 
-#
-# object to hold a control command and it's associated data and parameters
-#   control commands are things like "soft reset" or "adjust brightness"
-#   that are sent to the sign
-#
-package LedSign::M500::Config;
-our @CARP_NOT = qw(LedSign::M500);
-our @ISA      = qw (LedSign::M500::Command);
-
-sub new {
-    my $that  = shift;
-    my $class = ref($that) || $that;
-    my $this  = LedSign::M500::Command->new(@_);
-    $this->{'objtype'} = 'config';
-    return ( bless( $this, $class ) );
-}
-
-#
-# object to hold a message and it's associated data and parameters
-#
-package LedSign::M500::Msg;
-our @CARP_NOT = qw(LedSign::M500);
-our @ISA      = qw (LedSign::M500::Command);
-
-sub new {
-    my $that  = shift;
-    my $class = ref($that) || $that;
-    my $this  = LedSign::M500::Command->new(@_);
-    $this->{'objtype'} = 'msg';
-    return ( bless( $this, $class ) );
-}
 
 sub processTags {
     my $this    = shift;

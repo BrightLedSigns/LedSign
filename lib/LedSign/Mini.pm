@@ -338,7 +338,7 @@ sub sendCmd {
             croak("Invalid value [$params{value}] specified for settime");
         }
         if ($params{value} eq "now") {
-             $params{value} eq time()
+             $params{value}=time();
         }
         my $data;
         $data=pack("C*",(0x02,0x34));
@@ -420,10 +420,6 @@ sub sendData {
             baudrate => $params{baudrate}
         );
     }
-    #print "sending...\n";
-    #open(HD,'|/usr/bin/hd');
-    #print HD $data;
-    #close HD;
     $serial->write($data);
     select(undef,undef,undef,$packetdelay);
 }
