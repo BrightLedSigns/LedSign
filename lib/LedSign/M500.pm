@@ -793,7 +793,7 @@ LedSign::M500 - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 0.92
+Version 1.00
 
 =head1 SYNOPSIS
 

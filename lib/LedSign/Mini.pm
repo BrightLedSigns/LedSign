@@ -337,6 +337,9 @@ sub sendCmd {
         if ( $params{value} ne "now" and $params{value} !~ /^\d+$/ ) {
             croak("Invalid value [$params{value}] specified for settime");
         }
+        if ($params{value} eq "now") {
+             $params{value} eq time()
+        }
         my $data;
         $data=pack("C*",(0x02,0x34));
         use Time::Piece;
@@ -1640,7 +1643,7 @@ You can send an empty list, but the sign will then typically flash the word "EMP
 
 Setting the sign's time is helpful if you plan on using the L</"Date and Time Tags"> in a message.
 
-The settime command sets the current time and date on the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.
+The settime command sets the current time and date on the internal clock on the sign.  Supported only for signs...badges don't have an internal clock.  Accepts the time as a unix epoch value, like you would get from time() or the epoch method from L<Time::Piece|http://perldoc.perl.org/Time/Piece.html>.  If you supply the string "now" as the value, the API will internally substitute the current value of time().
 
   #
   $buffer->sendCmd(
