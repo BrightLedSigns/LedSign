@@ -32,7 +32,7 @@ BEGIN {
 #
 # Shared Constants / Globals
 #
-use constant EFFECTMAP => {
+use constant  EFFECTMAP => {
     'DEFAULT'         => 'A', 'AUTO'            => 'A',
     'CYCLIC'          => 'A', 'IMMEDIATE'       => 'B',
     'OPENFROMRIGHT'   => 'C', 'OPENFROMLEFT'    => 'D',
@@ -174,7 +174,7 @@ sub queueMsg {
         $params{effect} = "AUTO";
     }
     else {
-        my @effects = keys(%LedSign::M500::EFFECTMAP);
+        my @effects = keys(LedSign::M500::EFFECTMAP);
         if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
             return undef;
@@ -224,7 +224,7 @@ sub queueMsg {
 
     # Color
     if ( exists( $params{color} ) ) {
-        my @colors = keys(%LedSign::M500::COLORMAP);
+        my @colors = keys(LedSign::M500::COLORMAP);
         if ( !grep( /^$params{color}$/, @colors ) ) {
             croak("Invalid color value [$params{color}]");
             return undef;
@@ -233,7 +233,7 @@ sub queueMsg {
 
     # Font
     if ( exists( $params{font} ) ) {
-        my @fonts = keys(%LedSign::M500::FONTMAP);
+        my @fonts = keys(LedSign::M500::FONTMAP);
         if ( !grep( /^$params{font}$/, @fonts ) ) {
             croak("Invalid font value [$params{font}]");
             return undef;
@@ -572,7 +572,7 @@ sub encode {
     # effect
     my $effect = LedSign::M500::EFFECTMAP->{ $this->{effect} };
     if ( !$effect ) {
-        $effect = LedSign::M500::EFFECTMAP()->{'AUTO'};
+        $effect = LedSign::M500::EFFECTMAP->{'AUTO'};
     }
     $msg .= $effect;
     my $color;
@@ -645,8 +645,8 @@ sub processTags {
         my $colortag = $1;
         my $color    = $2;
         my $substitute;
-        if ( exists( $this->COLORMAP()->{$color} ) ) {
-            $substitute = $this->COLORMAP()->{$color};
+        if ( exists( $this->LedSign::M500::COLORMAP()->{$color} ) ) {
+            $substitute = $this->LedSign::M500::COLORMAP()->{$color};
         }
         else {
             $substitute = '';

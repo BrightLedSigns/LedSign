@@ -144,7 +144,7 @@ sub queueMsg {
         $params{effect} = "AUTO";
     }
     else {
-        my @effects = keys(%LedSign::BB::EFFECTMAP);
+        my @effects = keys(LedSign::BB::EFFECTMAP);
         if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
             return undef;
@@ -197,7 +197,7 @@ sub queueMsg {
 
     # Font
     if ( exists( $params{font} ) ) {
-        my @fonts = keys(%LedSign::BB::FONTMAP);
+        my @fonts = keys(LedSign::BB::FONTMAP);
         if ( !grep( /^$params{font}$/, @fonts ) ) {
             croak("Invalid font value [$params{font}]");
             return undef;
@@ -206,7 +206,7 @@ sub queueMsg {
 
     # Color
     if ( exists( $params{color} ) ) {
-        my @colors = keys(%LedSign::BB::COLORMAP);
+        my @colors = keys(LedSign::BB::COLORMAP);
         if ( !grep( /^$params{color}$/, @colors ) ) {
             croak("Invalid color value [$params{color}]");
             return undef;
@@ -546,7 +546,7 @@ sub encode {
         # effect
         my $effect = $LedSign::BB::EFFECTMAP{ $this->{effect} };
         if ( !$effect ) {
-            $effect = $this->EFFECTMAP()->{AUTO};
+            $effect = $this->LedSign::BB::EFFECTMAP()->{AUTO};
         }
         $msg .= $effect;
 
