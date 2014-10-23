@@ -63,7 +63,7 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
 - __data__
 
-    The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
+    The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, effect, speed, pause, and/or time tags. 
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
@@ -82,7 +82,11 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
 - __effect__
 
-    Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, and CLOCK. Defaults to HOLD
+    Optional. Valid values are: AUTO COVERDOWN COVERFROMCENTER COVERFROMLEFT COVERFROMRIGHT COVERTOCENTER COVERUP
+    CYCLIC DEFAULT EXPLODE FLASH IMMEDIATE INTERLACE1 INTERLACE2 OPENFROMCENTER OPENFROMLEFT
+    OPENFROMRIGHT OPENTOCENTER PACMAN RANDOM SCANLINE SCROLLDOWN SCROLLUP SHOOT SLIDEIN STACK
+
+    Defaults to AUTO
 
 - __speed__
 
