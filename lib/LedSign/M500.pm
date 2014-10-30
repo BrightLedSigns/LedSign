@@ -209,19 +209,6 @@ sub queueMsg {
         $params{slot} = $this->setslot;
     }
 
-    # Align
-    if ( exists( $params{align} ) ) {
-        if (   $params{align} ne "LEFT"
-            && $params{align} ne "CENTER"
-            && $params{align} ne "RIGHT" )
-        {
-            croak("Parameter [align] must be one of LEFT, RIGHT, or CENTER");
-        }
-    }
-    else {
-        $params{align} = "CENTER";
-    }
-
     # Color
     if ( exists( $params{color} ) ) {
         my @colors = keys(LedSign::M500::COLORMAP);
@@ -851,15 +838,9 @@ The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixe
 
 =item B<color>
 
-Allows you to specify the default color for the message.  Defaults to "AUTO".   Note that you can use multiple colors in a single message via the use of L<color tags in the data parameter|/"data">.
+Allows you to specify the default color for the message.  Defaults to "RED".   Note that you can use multiple colors in a single message via the use of L<color tags in the data parameter|/"data">.
 
-Valid values are: AUTO, RED, GREEN, YELLOW, DIM_RED, DIM_GREEN, BROWN, AMBER, ORANGE, MIX1, MIX2, MIX3,BLACK 
-
-=item B<align>
-
-Allows you to specify the alignment for the message.  Defaults to "CENTER".  Unlike color and font, there are no tags.   The entire contents of the message slot will have the same alignment. 
-
-Valid values are:  CENTER, LEFT, RIGHT
+Valid values are: RED, BRIGHTRED, ORANGE,  BRIGHTORANGE, YELLOW, BRIGHTYELLOW, GREEN, BRIGHTGREEN, LAYERMIX, BRIGHTLAYERMIX, VERTICALMIX, SAWTOOTHMIX, REDONGREEN, YELLOWONGREEN
 
 =item B<start>
 

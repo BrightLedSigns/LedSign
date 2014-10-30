@@ -96,7 +96,7 @@ sub setslot {
            croak("Slot [$slot] not available\n");
         }
     } else {
-          if (@{$this->{freeslots}} > 0) {
+          if (scalar(@{$this->{freeslots}}) > 0) {
               my $newslot=shift(@{$this->{freeslots}});
               push(@{$this->{usedslots}},$newslot);
               return $newslot

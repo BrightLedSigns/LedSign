@@ -70,7 +70,7 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
     ```perl
         # font, color, and time tag example
         $sign->queueMsg(
-            data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+            data => "<f:7X6><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
                     "<c:RED>The time is <t:A>"
         ) 
         # valid values for time tags
@@ -102,9 +102,10 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
 - __font__
 
-    Allows you to specify the default font for the message.  Defaults to "SS7".   Note that you can use multiple fonts in a single message via the use of [font tags in the data parameter](#data).
+    Allows you to specify the default font for the message.  The default is "7X6".   Note that you can use multiple fonts in a single message via the use of [font tags in the data parameter](#data).
 
-    Valid values are: SS5, ST5, WD5, WS5, SS7, ST7, WD7, WS7, SDS, SRF, STF, WDF, WSF, SDF, SS10, ST10, WD10, WS10, SS15, ST15, WD15, WS15, SS24, SS31
+    Valid values are:  '7X6', 'SHORT','SHORTWIDE','WIDE', '7X9','EXTRAWIDE','SMALL'
+
 
     The first two characters in the font name denote style: SS = Standard, ST = Bold, WD = Wide, WS= Wide with Shadow
 
@@ -112,15 +113,9 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
 - __color__
 
-    Allows you to specify the default color for the message.  Defaults to "AUTO".   Note that you can use multiple colors in a single message via the use of [color tags in the data parameter](#data).
+    Allows you to specify the default color for the message.  Defaults to "RED".   Note that you can use multiple colors in a single message via the use of [color tags in the data parameter](#data).
 
-    Valid values are: AUTO, RED, GREEN, YELLOW, DIM\_RED, DIM\_GREEN, BROWN, AMBER, ORANGE, MIX1, MIX2, MIX3,BLACK 
-
-- __align__
-
-    Allows you to specify the alignment for the message.  Defaults to "CENTER".  Unlike color and font, there are no tags.   The entire contents of the message slot will have the same alignment. 
-
-    Valid values are:  CENTER, LEFT, RIGHT
+    Valid values are: RED, BRIGHTRED, ORANGE,  BRIGHTORANGE, YELLOW, BRIGHTYELLOW, GREEN, BRIGHTGREEN, LAYERMIX, BRIGHTLAYERMIX, VERTICALMIX, SAWTOOTHMIX, REDONGREEN, YELLOWONGREEN
 
 - __start__
 
