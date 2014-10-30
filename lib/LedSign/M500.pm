@@ -441,7 +441,7 @@ sub sendQueue {
     } else {
         @slots = @{$this->{'usedslots'}};
     }
-    if ( length(@slots) > 0 ) {
+    if ( @slots > 0 ) {
         my $slotlist = join( '', @slots );
         my $runit = "~128~S0111111100002359${slotlist}";
         $runit .= "\r\r\r";
@@ -659,8 +659,8 @@ sub processTags {
         my $effecttag = $1;
         my $effect    = $2;
         my $substitute;
-        if ( exists( $this->EFFECTMAP()->{$effect} ) ) {
-            $substitute = "\r" . $this->EFFECTMAP()->{$effect} . '\\c';
+        if ( exists( $this->LedSign::M500::EFFECTMAP()->{$effect} ) ) {
+            $substitute = "\r" . $this->LedSign::M500::EFFECTMAP()->{$effect} . '\\c';
         }
         else {
             $substitute = '';
