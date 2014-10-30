@@ -674,8 +674,8 @@ sub processTags {
         my $pausetag = $1;
         my $pause    = $2;
         my $substitute;
-        if ( exists( $this->PAUSEMAP()->{$pause} ) ) {
-            $substitute = $this->PAUSEMAP()->{$pause};
+        if ( exists( $this->LedSign::M500::PAUSEMAP()->{$pause} ) ) {
+            $substitute = $this->LedSign::M500::PAUSEMAP()->{$pause};
         }
         else {
             $substitute = '';
@@ -686,8 +686,8 @@ sub processTags {
         my $timetag = $1;
         my $time    = $2;
         my $substitute;
-        if ( exists( $this->PAUSEMAP()->{$time} ) ) {
-            $substitute = $this->PAUSEMAP()->{$time};
+        if ( exists( $this->LedSign::M500::PAUSEMAP()->{$time} ) ) {
+            $substitute = $this->LedSign::M500::PAUSEMAP()->{$time};
         }
         else {
             $substitute = '[INVALID TIME TAG]';
