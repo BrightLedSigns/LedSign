@@ -441,7 +441,7 @@ sub sendQueue {
     } else {
         @slots = @{$this->{'usedslots'}};
     }
-    if ( @slots > 0 ) {
+    if (scalar(@slots) > 0 ) {
         my $slotlist = join( '', @slots );
         my $runit = "~128~S0111111100002359${slotlist}";
         $runit .= "\r\r\r";
