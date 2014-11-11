@@ -618,8 +618,8 @@ sub processTags {
         my $fonttag = $1;
         my $font    = $2;
         my $substitute;
-        if ( exists( $this->FONTMAP()->{$font} ) ) {
-            $substitute = $this->FONTMAP()->{$font};
+        if ( exists( $this->LedSign::M500::FONTMAP()->{$font} ) ) {
+            $substitute = $this->LedSign::M500::FONTMAP()->{$font};
         }
         else {
             $substitute = '';
@@ -801,7 +801,7 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
 
   # font, color, and time tag example
   $sign->queueMsg(
-      data => "<f:SS7><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+      data => "<f:7X6><c:YELLOW>6 pixel yellow<f:7X9>9 pixel" .
               "<c:RED>The time is <t:A>"
   ) 
   # valid values for time tags
@@ -812,7 +812,7 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
 
 =item B<effect>
 
-Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, and CLOCK. Defaults to HOLD
+Optional. Valid values are: AUTO, COVERDOWN, COVERFROMCENTER, COVERFROMLEFT, COVERFROMRIGHT, COVERTOCENTER, COVERUP, CYCLIC, EXPLODE, FLASH, IMMEDIATE, INTERLACE1, INTERLACE2, OPENFROMCENTER, OPENFROMLEFT, OPENFROMRIGHT, OPENTOCENTER, PACMAN, RANDOM, SCANLINE, SCROLLDOWN, SCROLLUP, SHOOT, SLIDEIN, STACK. Defaults to AUTO.
 
 =item B<speed>
 
@@ -828,13 +828,9 @@ Defaults to 2.
 
 =item B<font>
 
-Allows you to specify the default font for the message.  Defaults to "SS7".   Note that you can use multiple fonts in a single message via the use of L<font tags in the data parameter|/"data">.
+Allows you to specify the default font for the message.  Defaults to "7X6".   Note that you can use multiple fonts in a single message via the use of L<font tags in the data parameter|/"data">.
 
-Valid values are: SS5, ST5, WD5, WS5, SS7, ST7, WD7, WS7, SDS, SRF, STF, WDF, WSF, SDF, SS10, ST10, WD10, WS10, SS15, ST15, WD15, WS15, SS24, SS31
-
-The first two characters in the font name denote style: SS = Standard, ST = Bold, WD = Wide, WS= Wide with Shadow
-
-The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
+Valid values are: SHORT, WIDE, EXTRAWIDE, 7X6, SHORTWIDE, 7X9, and SMALL.
 
 =item B<color>
 
