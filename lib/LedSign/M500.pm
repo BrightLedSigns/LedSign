@@ -682,6 +682,8 @@ sub processTags {
         }
         $msgdata =~ s/$pausetag/$substitute/;
     }
+
+    # time / date
     while ( $msgdata =~ /(<t:([^>]+)>)/gi ) {
         my $timetag = $1;
         my $time    = $2;
@@ -695,8 +697,6 @@ sub processTags {
         $msgdata =~ s/$timetag/$substitute/;
     }
 
-    # time / date
-    $this->{data} = $msgdata;
     return $msgdata;
 }
 
