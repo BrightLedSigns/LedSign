@@ -846,20 +846,6 @@ Valid values: 0000 to 2359
 
 Default value: 0000
 
-=over
-
-=item B<caveat> The start, stop, and rundays parameters are only used if both of these conditions are met:
-
-=over
-
-=item Ensure that L</"signmode"> is set to expand
-
-=item Ensure that L</"displaymode"> is set to bytime
-
-=back
-
-=back
-
 =item B<stop>
 
 Allows you to specify a stop time for the message. It's a 4 digit number repres
@@ -869,8 +855,6 @@ would be 1pm.
 Valid values: 0000 to 2359
 
 Default value: 2359
-
-B<Note:> See the L</"caveat"> about start, stop and rundays.
 
 =item B<rundays>
 
