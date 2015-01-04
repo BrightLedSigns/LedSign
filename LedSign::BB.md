@@ -1,7 +1,6 @@
 # NAME
 
 LedSign::BB - send text and graphics to led signs 
- 
 
 # VERSION
 
@@ -9,24 +8,21 @@ Version 0.92
 
 # SYNOPSIS
 
-```perl
-    #!/usr/bin/perl
-    use LedSign::BB;
-    #
-    # add two messages then send them to a sign
-    #   connected to COM3 (windows)
-    #
-    my $buffer=LedSign::BB->new();
-    $buffer->queueMsg(
-        data => "Message One"
-    );
-    $buffer->queueMsg(
-        data => "Message Two"
-    );
-    $buffer->sendQueue(device => "COM3");
-```
+     #!/usr/bin/perl
+     use LedSign::BB;
+     #
+     # add two messages then send them to a sign
+     #   connected to COM3 (windows)
+     #
+     my $buffer=LedSign::BB->new();
+     $buffer->queueMsg(
+         data => "Message One"
+     );
+     $buffer->queueMsg(
+         data => "Message Two"
+     );
+     $buffer->sendQueue(device => "COM3");
 
-```perl
      #!/usr/bin/perl
      #
      # adjust the brightness on a sign 
@@ -43,7 +39,6 @@ Version 0.92
      );
      $buffer->sendQueue(device => "/dev/ttyUSB0");
     
-```
 
 # DESCRIPTION
 
@@ -53,9 +48,7 @@ LedSign::BB is used to send text and graphics via RS232 to a specific set of pro
 
 ## new
 
-```perl
     my $buffer=LedSign::BB->new();
-```
 
 # METHODS
 
@@ -65,11 +58,10 @@ Adds a text messsage to display on the sign.  The $buffer->queueMsg method has o
 
 Note that this message isn't sent to the sign until you call the ["$buffer->send"](#buffer-send) method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the ["$buffer->queueMsg"](#buffer-queuemsg) and ["$buffer->sendCmd"](#buffer-sendcmd) methods.
 
-- __data__
+- **data**
 
     The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
 
-    ```perl
         # font, color, and time tag example
         $buffer->queueMsg(
             data => "<f:SS7><c:YELLOW>7 pixel yellow text<f:SS10>10 pixel text".
@@ -80,37 +72,34 @@ Note that this message isn't sent to the sign until you call the ["$buffer->send
         # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
         # I - short spelling of day (SUN, MON, TUE, etc)
         # I - long spelling of day (Sunday, Monday, Tuesday, etc)
-    ```
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
     Note that the message can contain a newline.  Depending on the pixel height of the font used, and the pixel height of the sign, you can display 2 or more lines of text on a sign by inserting a newline.  For example, a sign with a pixel height of 16 can display two lines of text if you use a 7 pixel high font.  These signs, however, do not support the idea of "regions", so you cannot, for example, hold the first line of text in place while the bottom line scrolls.  This is a limitation of the sign hardware, and not a limitation of this API.
 
-    ```perl
         # two lines of text, assuming the sign is at least 16 pixels high
         $buffer->queueMsg(
             data => "<f:SS7>This is line 1\nThis is line2",
             align => "LEFT"
         );
-    ```
 
-- __effect__
+- **effect**
 
     Optional. Valid values are: AUTO, FLASH, HOLD, INTERLOCK, ROLLDOWN, ROLLUP, ROLLIN, ROLLOUT, ROLLLEFT, ROLLRIGHT, ROTATE, SLIDE, SNOW, SPARKLE, SPRAY, STARBURST, SWITCH, TWINKLE, WIPEDOWN, WIPEUP, WIPEIN, WIPEOUT, WIPELEFT, WIPERIGHT, CYCLECOLOR, CLOCK.  Defaults to HOLD
 
-- __speed__
+- **speed**
 
     Optional. An integer from 1 to 5, where 1 is the fastest 5 is the slowest
 
     Defaults to 2.
 
-- __pause__
+- **pause**
 
     Optional. An integer from 0 to 9, indicating how many seconds to hold the message on screen before moving to the next message
 
     Defaults to 2.
 
-- __font__
+- **font**
 
     Allows you to specify the default font for the message.  Defaults to "SS7".   Note that you can use multiple fonts in a single message via the use of [font tags in the data parameter](#data).
 
@@ -120,19 +109,19 @@ Note that this message isn't sent to the sign until you call the ["$buffer->send
 
     The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
 
-- __color__
+- **color**
 
     Allows you to specify the default color for the message.  Defaults to "AUTO".   Note that you can use multiple colors in a single message via the use of [color tags in the data parameter](#data).
 
     Valid values are: AUTO, RED, GREEN, YELLOW, DIM\_RED, DIM\_GREEN, BROWN, AMBER, ORANGE, MIX1, MIX2, MIX3,BLACK 
 
-- __align__
+- **align**
 
     Allows you to specify the alignment for the message.  Defaults to "CENTER".  Unlike color and font, there are no tags.   The entire contents of the message slot will have the same alignment. 
 
     Valid values are:  CENTER, LEFT, RIGHT
 
-- __start__
+- **start**
 
     Allows you to specify a start time for the message. It's a 4 digit number representing the start time in a 24 hour clock, such that 0800 would be 8am, and 1300 would be 1pm.      
 
@@ -140,11 +129,11 @@ Note that this message isn't sent to the sign until you call the ["$buffer->send
 
     Default value: 0000
 
-    - __caveat__ The start, stop, and rundays parameters are only used if both of these conditions are met:
+    - **caveat** The start, stop, and rundays parameters are only used if both of these conditions are met:
         - Ensure that ["signmode"](#signmode) is set to expand
         - Ensure that ["displaymode"](#displaymode) is set to bytime
 
-- __stop__
+- **stop**
 
     Allows you to specify a stop time for the message. It's a 4 digit number repres
     enting the stop time in a 24 hour clock, such that 0800 would be 8am, and 1300
@@ -154,23 +143,22 @@ Note that this message isn't sent to the sign until you call the ["$buffer->send
 
     Default value: 2359
 
-    __Note:__ See the ["caveat"](#caveat) about start, stop and rundays.
+    **Note:** See the ["caveat"](#caveat) about start, stop and rundays.
 
-- __rundays__
+- **rundays**
 
     Allows you to specify which days the message should run.  It's a 7 digit binary string, meaning that the number can only have ones and zeros in it.  The first digit is Sunday, the second is Monday, and so forth.  So, for example, to run the sign only on Sunday, you would use 1000000.  To run it every day, 1111111.  Or, for example, to show it only on Monday, Wednesday, and Friday, 0101010.
 
     Default value: 1111111
 
-    __Note:__ See the ["caveat"](#caveat) about start, stop and rundays.
+    **Note:** See the ["caveat"](#caveat) about start, stop and rundays.
 
-- __slot__
+- **slot**
 
     Optional.  The sign has 36 message slots, numbered from 0 to 9 and A to Y.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  
 
     This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
 
-    ```perl
         #
         # example of using the slot parameter
         # 
@@ -187,7 +175,6 @@ Note that this message isn't sent to the sign until you call the ["$buffer->send
         #
         #
         $buffer->sendQueue(device => "COM3");
-    ```
 
 ## $buffer->sendCmd
 
@@ -195,9 +182,8 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
 Settings you can change, with examples:
 
-- __brightness__
+- **brightness**
 
-    ```perl
         #
         # adjust the brightness on a sign 
         #  value is mandatory can be 1 to 8, with 1 being the brightest,
@@ -208,10 +194,9 @@ Settings you can change, with examples:
             setting => "brightness",
             value => 1
         );
-    ```
-- __reset__
 
-    ```perl
+- **reset**
+
         #
         # does a soft reset on the sign
         #   data is not erased
@@ -221,10 +206,9 @@ Settings you can change, with examples:
             setting => "reset",
         );
         $buffer->sendQueue(device => "/dev/ttyUSB0");
-    ```
-- __cleardata__
 
-    ```perl
+- **cleardata**
+
         #
         # clears all data on the sign
         #  note: this command takes 30 seconds or so to process, during
@@ -235,10 +219,9 @@ Settings you can change, with examples:
             setting => "cleardata",
         );
         $buffer->sendQueue(device => "/dev/ttyUSB0");
-    ```
-- __settime__
 
-    ```perl
+- **settime**
+
         #
         # sets the internal date and time clock on the sign. 
         # You can supply the string # "now", and it will sync the sign's clock  
@@ -254,8 +237,8 @@ Settings you can change, with examples:
             value => "now"
         );
         $buffer->sendQueue(device => "/dev/ttyUSB0");
-    ```
-- __signmode__
+
+- **signmode**
 
     This sets the sign's mode to either "expand" or "basic".  
 
@@ -265,7 +248,6 @@ Settings you can change, with examples:
 
     Valid values: basic, expand
 
-    ```perl
         #
         # example of setting sign to expand mode
         #
@@ -274,9 +256,8 @@ Settings you can change, with examples:
             setting => "signmode",
             value => "expand"
         );
-    ```
 
-- __displaymode__
+- **displaymode**
 
     This sets the sign's displaymode.  You must first set signmode to expand to use this feature (see ["signmode"](#signmode)).
 
@@ -286,7 +267,6 @@ Settings you can change, with examples:
 
     Valid values: allslots, bytime
 
-    ```perl
         #
         # example of setting displaymode to allslots
         #
@@ -295,7 +275,6 @@ Settings you can change, with examples:
             setting => "displaymode",
             value => "allslots"
         );
-    ```
 
 ## $buffer->sendQueue
 
@@ -303,9 +282,9 @@ The send method connects to the sign over RS232 and sends all the data accumulat
 
 It supports one optional argument: baudrate
 
-- __baudrate__: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
+- 
+**baudrate**: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
-```perl
     # typical use on a windows machine
     $buffer->sendQueue(
         device => "COM4"
@@ -319,16 +298,13 @@ It supports one optional argument: baudrate
         device => "COM8",
         baudrate => "2400"
     );
-```
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
-```perl
     # send to the first sign
     $buffer->sendQueue(device => "COM4");
     # send to another sign
     $buffer->sendQueue(device => "COM6");
-```
 
 # AUTHOR
 
@@ -337,7 +313,6 @@ Kerry Schwab, `<sales at brightledsigns.com>`
 # SUPPORT
 
 You can find documentation for this module with the perldoc command.  `perldoc LedSign::BB`
-  
 
 You can also look for information at:
 

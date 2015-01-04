@@ -1,15 +1,13 @@
 # NAME
 
 LedSign::M500 - send text and graphics to led signs 
- 
 
 # VERSION
 
-Version 0.92
+Version 1.00
 
 # SYNOPSIS
 
-```perl
     #!/usr/bin/perl
     use LedSign::M500;
     #
@@ -24,9 +22,7 @@ Version 0.92
         data => "Message Two"
     );
     $sign->sendQueue(device => "COM3");
-```
 
-```perl
     #!/usr/bin/perl
     #
     # set the time on the sign to the current time
@@ -39,7 +35,6 @@ Version 0.92
         value => "now"
     );
     $sign->sendQueue(device => "/dev/ttyUSB0");
-```
 
 # DESCRIPTION
 
@@ -49,9 +44,7 @@ LedSign::M500 is used to send text and graphics via RS232 to a specific set of p
 
 ## new
 
-```perl
     my $sign=LedSign::M500->new();
-```
 
 # METHODS
 
@@ -61,16 +54,15 @@ Adds a text messsage to display on the sign.  The $sign->queueMsg method has onl
 
 Note that this message isn't sent to the sign until you call the ["$sign->send"](#sign-send) method, which will then connect to the sign and send ALL messages and configuration commands (in first in, first out order) that you added with the ["$sign->queueMsg"](#sign-queuemsg) and ["$sign->sendCmd"](#sign-sendcmd) methods.
 
-- __data__
+- **data**
 
-    The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, effect, speed, pause, and/or time tags. 
+    The message you want to display on the sign.  Can be either plain text, like "hello World!", or it can be marked up with font,color, and/or time tags. 
 
     Valid values for time tags are shown in the code example above. See ["font"](#font) for valid font values, and ["color"](#color) for valid color values.
 
-    ```perl
         # font, color, and time tag example
         $sign->queueMsg(
-            data => "<f:7X6><c:YELLOW>7 pixel yellow<f:SS10>10 pixel" .
+            data => "<f:7X6><c:YELLOW>6 pixel yellow<f:7X9>9 pixel" .
                     "<c:RED>The time is <t:A>"
         ) 
         # valid values for time tags
@@ -78,46 +70,36 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
         # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
         # I - short spelling of day (SUN, MON, TUE, etc)
         # I - long spelling of day (Sunday, Monday, Tuesday, etc)
-    ```
 
-- __effect__
+- **effect**
 
-    Optional. Valid values are: AUTO COVERDOWN COVERFROMCENTER COVERFROMLEFT COVERFROMRIGHT COVERTOCENTER COVERUP
-    CYCLIC DEFAULT EXPLODE FLASH IMMEDIATE INTERLACE1 INTERLACE2 OPENFROMCENTER OPENFROMLEFT
-    OPENFROMRIGHT OPENTOCENTER PACMAN RANDOM SCANLINE SCROLLDOWN SCROLLUP SHOOT SLIDEIN STACK
+    Optional. Valid values are: AUTO, COVERDOWN, COVERFROMCENTER, COVERFROMLEFT, COVERFROMRIGHT, COVERTOCENTER, COVERUP, CYCLIC, EXPLODE, FLASH, IMMEDIATE, INTERLACE1, INTERLACE2, OPENFROMCENTER, OPENFROMLEFT, OPENFROMRIGHT, OPENTOCENTER, PACMAN, RANDOM, SCANLINE, SCROLLDOWN, SCROLLUP, SHOOT, SLIDEIN, STACK. Defaults to AUTO.
 
-    Defaults to AUTO
-
-- __speed__
+- **speed**
 
     Optional. An integer from 1 to 5, where 1 is the fastest 5 is the slowest
 
     Defaults to 2.
 
-- __pause__
+- **pause**
 
     Optional. An integer from 0 to 9, indicating how many seconds to hold the message on screen before moving to the next message
 
     Defaults to 2.
 
-- __font__
+- **font**
 
-    Allows you to specify the default font for the message.  The default is "7X6".   Note that you can use multiple fonts in a single message via the use of [font tags in the data parameter](#data).
+    Allows you to specify the default font for the message.  Defaults to "7X6".   Note that you can use multiple fonts in a single message via the use of [font tags in the data parameter](#data).
 
-    Valid values are:  '7X6', 'SHORT','SHORTWIDE','WIDE', '7X9','EXTRAWIDE','SMALL'
+    Valid values are: SHORT, WIDE, EXTRAWIDE, 7X6, SHORTWIDE, 7X9, and SMALL.
 
-
-    The first two characters in the font name denote style: SS = Standard, ST = Bold, WD = Wide, WS= Wide with Shadow
-
-    The rest of the characters denote pixel height.  5 == 5 pixels high, 7 == 7 pixels high, etc.  The 'F' denotes a 7 pixel high "Fancy" font that has decorative serifs.
-
-- __color__
+- **color**
 
     Allows you to specify the default color for the message.  Defaults to "RED".   Note that you can use multiple colors in a single message via the use of [color tags in the data parameter](#data).
 
     Valid values are: RED, BRIGHTRED, ORANGE,  BRIGHTORANGE, YELLOW, BRIGHTYELLOW, GREEN, BRIGHTGREEN, LAYERMIX, BRIGHTLAYERMIX, VERTICALMIX, SAWTOOTHMIX, REDONGREEN, YELLOWONGREEN
 
-- __start__
+- **start**
 
     Allows you to specify a start time for the message. It's a 4 digit number representing the start time in a 24 hour clock, such that 0800 would be 8am, and 1300 would be 1pm.      
 
@@ -125,11 +107,11 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Default value: 0000
 
-    - __caveat__ The start, stop, and rundays parameters are only used if both of these conditions are met:
+    - **caveat** The start, stop, and rundays parameters are only used if both of these conditions are met:
         - Ensure that ["signmode"](#signmode) is set to expand
         - Ensure that ["displaymode"](#displaymode) is set to bytime
 
-- __stop__
+- **stop**
 
     Allows you to specify a stop time for the message. It's a 4 digit number repres
     enting the stop time in a 24 hour clock, such that 0800 would be 8am, and 1300
@@ -139,17 +121,17 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Default value: 2359
 
-    __Note:__ See the ["caveat"](#caveat) about start, stop and rundays.
+    **Note:** See the ["caveat"](#caveat) about start, stop and rundays.
 
-- __rundays__
+- **rundays**
 
     Allows you to specify which days the message should run.  It's a 7 digit binary string, meaning that the number can only have ones and zeros in it.  The first digit is Sunday, the second is Monday, and so forth.  So, for example, to run the sign only on Sunday, you would use 1000000.  To run it every day, 1111111.  Or, for example, to show it only on Monday, Wednesday, and Friday, 0101010.
 
     Default value: 1111111
 
-    __Note:__ See the ["caveat"](#caveat) about start, stop and rundays.
+    **Note:** See the ["caveat"](#caveat) about start, stop and rundays.
 
-- __slot__
+- **slot**
 
     Optional, and NOT recommended, because it's somewhat confusing.  The sign has 36 message slots, numbered from 0 to 9 and A to Z.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  The reason we don't recommend using the slot parameter is that, because of how the sign works, specifying a slot erases all other slots that have a higher number.  For example, if you send something specifically to slot 8, the contents of slots 9, and A-Z, will be erased.   The contents in slots 0-7, however, will remain intact.
 
@@ -157,7 +139,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Example of using the slot parameter INCORRECTLY
 
-    ```perl
         # INCORRECT EXAMPLE
         #
         #  "Message Two" will never show.
@@ -175,11 +156,9 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
         #
         #
         $sign->sendQueue(device => "COM3");
-    ```
 
     Example of using the slot parameter CORRECTLY
 
-    ```perl
         # CORRECT EXAMPLE
         #
         # example of using the slot parameter CORRECTLY
@@ -204,7 +183,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
         #
         #
         $sign->sendQueue(device => "COM3");
-    ```
 
 ## $sign->sendCmd
 
@@ -212,9 +190,8 @@ Adds a configuration messsage to change some setting on the sign.  The first arg
 
 Settings you can change, with examples:
 
-- __alarm__
+- **alarm**
 
-    ```perl
         #
         # turn the alarm on or off
         #
@@ -223,10 +200,9 @@ Settings you can change, with examples:
             value => "on",
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
-    ```
-- __setttime__
 
-    ```perl
+- **setttime**
+
         #
         # sets the internal date and time clock on the sign. 
         #
@@ -242,16 +218,14 @@ Settings you can change, with examples:
             value => "now"
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
-    ```
-- __test__
 
-    ```perl
+- **test**
+
         # display a test pattern on the sign, where every LED is lit
         $sign->sendCmd(
             setting => "test",
         );
         $sign->sendQueue(device => "/dev/ttyUSB0");
-    ```
 
 ## $sign->send
 
@@ -259,9 +233,8 @@ The send method connects to the sign over RS232 and sends all the data accumulat
 
 It supports one optional argument: baudrate
 
-- __baudrate__: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
+- **baudrate**: defaults to 9600, no real reason to use something other than the default, but it's there if you feel the need.  Must be a value that Device::Serialport or Win32::Serialport thinks is valid
 
-```perl
     # typical use on a windows machine
     $sign->sendQueue(
         device => "COM4"
@@ -275,16 +248,13 @@ It supports one optional argument: baudrate
         device => "COM8",
         baudrate => "2400"
     );
-```
 
 Note that if you have multiple connected signs, you can send to them without creating a new object:
 
-```perl
     # send to the first sign
     $sign->sendQueue(device => "COM4");
     # send to another sign
     $sign->sendQueue(device => "COM6");
-```
 
 # AUTHOR
 
@@ -293,7 +263,6 @@ Kerry Schwab, `<sales at brightledsigns.com>`
 # SUPPORT
 
 You can find documentation for this module with the perldoc command.  `perldoc LedSign::M500`
-  
 
 You can also look for information at:
 

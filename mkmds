@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+# make the markdown files from the pod source
+my $dir='lib/LedSign';
+opendir(DIR,$dir);
+foreach my $file (readdir(DIR)) {
+    next unless ($file =~ /pm$/);
+    my $type=$file;
+    $type=~s/\.pm$//g;
+    next if ($type eq "Image");
+    my $ofile='LedSign::' . $type . '.md';
+    print "file is [$file] ofile is [$ofile]\n";
+    system("pod2markdown $dir/$file $ofile");
+}
