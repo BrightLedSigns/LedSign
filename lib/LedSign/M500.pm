@@ -414,7 +414,6 @@ sub sendQueue {
     }
     my @slots;
     if ( exists( $params{showslots} ) ) {
-
         # strip spaces
         $params{showslots} =~ s#\s##g;
         foreach my $one ( split( /\,/, $params{showslots} ) ) {
@@ -429,8 +428,17 @@ sub sendQueue {
         @slots = @{$this->{'usedslots'}};
     }
     if (scalar(@slots) > 0 ) {
-        my $slotlist = join( '', @slots );
-        my $runit = "~128~S0111111100002359${slotlist}";
+        my $slotlist = join('', @slots );
+        my $start='0000';
+        if ($params{start} =~ /^\d\d\d\d/) {
+            $start=$params{start}; 
+        }
+        my $stop='2359';
+        if ($params{stop} =~ /^\d\d\d\d/) {
+            $stop=$params{stop}; 
+        }
+        my $rundays=$params{rundays};
+        my $runit = "~128~S0${rundays}${start}${stop}${slotlist}";
         $runit .= "\r\r\r";
         select( undef, undef, undef, $packetdelay );
         $serial->write($runit);
@@ -862,55 +870,24 @@ Allows you to specify which days the message should run.  It's a 7 digit binary 
 
 Default value: 1111111
 
-B<Note:> See the L</"caveat"> about start, stop and rundays.
-
 =item B<slot>
 
-Optional, and NOT recommended, because it's somewhat confusing.  The sign has 36 message slots, numbered from 0 to 9 and A to Z.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 0.  The reason we don't recommend using the slot parameter is that, because of how the sign works, specifying a slot erases all other slots that have a higher number.  For example, if you send something specifically to slot 8, the contents of slots 9, and A-Z, will be erased.   The contents in slots 0-7, however, will remain intact.
+The sign has 99 message slots, numbered from 01 to 99.   It displays each message (a message can consist of multiple screens of text, btw), in order.  If you do not supply this argument, the API will assign the slots consecutively, starting with slot 01.  
 
-This behavior may be useful to some people that want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
+Specifying the slot explicitly may be useful if you want to, for example, keep a constant message in lower numbered slots...say 0, 1, and 2, but change a message periodicaly that sits in slot 3.  If you don't need this kind of functionality, however, just don't supply the slot argument. 
 
-Example of using the slot parameter INCORRECTLY
+Example of using the slot parameter 
 
-  # INCORRECT EXAMPLE
   #
-  #  "Message Two" will never show.
-  #  Every time you use slot, all higher numbered slots are erased.
-  #  So, because these are sent out of order, the message in slot 1 is erased
-  my $sign=LedSign::M500->new();
-  $sign->queueMsg(
-      data => "Message Two",
-      slot => 1
-  );
-  $sign->queueMsg(
-      data => "Message One",
-      slot => 0
-  );
-  #
-  #
-  $sign->sendQueue(device => "COM3");
-
-Example of using the slot parameter CORRECTLY
-
-  # CORRECT EXAMPLE
-  #
-  # example of using the slot parameter CORRECTLY
-  #   since these slots are in consecutive order (3, then 4), neither will
-  #   be erased 
-  # 
-  #   also, if the sign already had messages in slots 0, 1, or 2, they 
-  #   will continue to be shown.
-  # 
-  #   however, any message running on the sign with a message slot higher 
-  #   than 4 would have been erased 
+  # EXAMPLE
   #
   my $sign=LedSign::M500->new();
   $sign->queueMsg(
-      data => "Message Two",
+      data => "A message",
       slot => 3
   );
   $sign->queueMsg(
-      data => "Message One",
+      data => "Another message",
       slot => 4
   );
   #
@@ -966,9 +943,9 @@ Settings you can change, with examples:
 
 =back
 
-=head2 $sign->send
+=head2 $sign->sendQueue
 
-The send method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
+The sendQueue method connects to the sign over RS232 and sends all the data accumulated from prior use of the $sign->queueMsg method.  The only mandatory argument is 'device', denoting which serial device to send to.
 
 It supports one optional argument: baudrate
 
