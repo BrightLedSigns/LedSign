@@ -107,10 +107,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
 
     Default value: 0000
 
-    - **caveat** The start, stop, and rundays parameters are only used if both of these conditions are met:
-        - Ensure that ["signmode"](#signmode) is set to expand
-        - Ensure that ["displaymode"](#displaymode) is set to bytime
-
 - **stop**
 
     Allows you to specify a stop time for the message. It's a 4 digit number repres
@@ -120,8 +116,6 @@ Note that this message isn't sent to the sign until you call the ["$sign->send"]
     Valid values: 0000 to 2359
 
     Default value: 2359
-
-    **Note:** See the ["caveat"](#caveat) about start, stop and rundays.
 
 - **rundays**
 
