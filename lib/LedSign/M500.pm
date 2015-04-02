@@ -250,7 +250,7 @@ sub queueMsg {
             croak("Invalid stop time value [$params{stop}]");
         }
     }
-
+    # note: krs: rundays is broken for the moment
     # rundays is a 7 digit binary string (all digits must be 1 or 0)
     # the first digit is sunday, the next monday, and so on
     # so, to run only on sundays -> 1000000
@@ -430,14 +430,17 @@ sub sendQueue {
     if (scalar(@slots) > 0 ) {
         my $slotlist = join('', @slots );
         my $start='0000';
-        if ($params{start} =~ /^\d\d\d\d/) {
+        if (exists($params{start}) && $params{start} =~ /^\d\d\d\d$/) {
             $start=$params{start}; 
         }
         my $stop='2359';
-        if ($params{stop} =~ /^\d\d\d\d/) {
+        if (exists($params{stop}) && $params{stop} =~ /^\d\d\d\d$/) {
             $stop=$params{stop}; 
         }
-        my $rundays=$params{rundays};
+        my $rundays='1111111';
+        if (exists($params{rundays}) && $params{rundays} =~ /^[01]{7}$/) {
+            my $rundays=$params{rundays};
+        }
         my $runit = "~128~S0${rundays}${start}${stop}${slotlist}";
         $runit .= "\r\r\r";
         select( undef, undef, undef, $packetdelay );
