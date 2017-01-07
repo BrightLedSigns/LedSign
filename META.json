@@ -4,7 +4,7 @@
       "Kerry Schwab <sales@brightledsigns.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120351",
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.133380",
    "license" : [
       "open_source"
    ],
@@ -31,95 +31,95 @@
    "provides" : {
       "LedSign" : {
          "file" : "lib/LedSign.pm",
-         "version" : "0.01"
+         "version" : "1.01"
       },
       "LedSign::BB" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : "1.00"
+         "version" : "1.01"
       },
       "LedSign::BB::Command" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::BB::Config" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::BB::Factory" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::BB::Msg" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::BB::SerialTest" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Factory" : {
          "file" : "lib/LedSign.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Image" : {
          "file" : "lib/LedSign/Image.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::M500" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : "1.00"
+         "version" : "1.01"
       },
       "LedSign::M500::Command" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::M500::Config" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::M500::Factory" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::M500::Msg" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::M500::SerialTest" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : "1.00"
+         "version" : "1.01"
       },
       "LedSign::Mini::Clipart" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::Factory" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::Icon" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::Image" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::Msg" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::Pixmap" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       },
       "LedSign::Mini::SerialTest" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : 0
+         "version" : "0"
       }
    },
    "release_status" : "stable",
@@ -128,5 +128,5 @@
          "http://www.freebsd.org/copyright/freebsd-license.html"
       ]
    },
-   "version" : "0.01"
+   "version" : "1.01"
 }

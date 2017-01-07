@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use POSIX qw(strftime);
-$LedSign::M500::VERSION="1.00";
+$LedSign::M500::VERSION="1.01";
 #
 # Shared Constants / Globals
 #
@@ -388,18 +388,18 @@ sub sendQueue {
         );
     }
 
-    my $count = 0;
     foreach my $obj ( @{ $this->_factory->objects() } ) {
-        $count++;
         my $objtype = $obj->{'objtype'};
         my @packets = $obj->encode();
         $serial->read_const_time(1000);
         $serial->read_char_time(100);
         $serial->write_settings();
-        my $count = 0;
         foreach my $data (@packets) {
-            $count++;
-            my $count = $serial->write($data);
+            my $count=0;
+            $count=$serial->write($data);
+            if ($count eq "") {
+                $count=0;
+            }
             if ( $^O eq "MSWin32" ) {
                 $serial->write_done;
             }
@@ -752,7 +752,7 @@ LedSign::M500 - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 1.00
+Version 1.01
 
 =head1 SYNOPSIS
 

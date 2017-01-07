@@ -4,7 +4,7 @@ LedSign::BB - send text and graphics to led signs
 
 # VERSION
 
-Version 0.92
+Version 1.01
 
 # SYNOPSIS
 
