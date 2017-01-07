@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use POSIX qw(strftime);
-$LedSign::M500::VERSION="1.01";
+$LedSign::M500::VERSION="1.02";
 #
 # Shared Constants / Globals
 #
@@ -174,7 +174,7 @@ sub queueMsg {
         $params{effect} = "AUTO";
     }
     else {
-        my @effects = keys(LedSign::M500::EFFECTMAP);
+        my @effects = keys(LedSign::M500::EFFECTMAP());
         if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
             return undef;
@@ -211,7 +211,7 @@ sub queueMsg {
 
     # Color
     if ( exists( $params{color} ) ) {
-        my @colors = keys(LedSign::M500::COLORMAP);
+        my @colors = keys(LedSign::M500::COLORMAP());
         if ( !grep( /^$params{color}$/, @colors ) ) {
             croak("Invalid color value [$params{color}]");
             return undef;
@@ -220,7 +220,7 @@ sub queueMsg {
 
     # Font
     if ( exists( $params{font} ) ) {
-        my @fonts = keys(LedSign::M500::FONTMAP);
+        my @fonts = keys(LedSign::M500::FONTMAP());
         if ( !grep( /^$params{font}$/, @fonts ) ) {
             croak("Invalid font value [$params{font}]");
             return undef;
@@ -752,7 +752,7 @@ LedSign::M500 - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =head1 SYNOPSIS
 

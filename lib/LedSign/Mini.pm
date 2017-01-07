@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use 5.008001;
-$LedSign::Mini::VERSION="1.01";
+$LedSign::Mini::VERSION="1.02";
 #
 # Shared Constants / Globals
 #
@@ -132,7 +132,6 @@ sub queueMsg {
         $params{effect} = "scroll";
     }
     else {
-        #my @effects = keys(%{$this->EFFECTMAP()});
         my @effects = keys(%{EFFECTMAP()});
         if ( !grep( /^$params{effect}$/, @effects ) ) {
             croak("Invalid effect value [$params{effect}]");
@@ -1290,7 +1289,7 @@ LedSign::Mini - send text and graphics to small LED badges and signs
  
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =head1 SYNOPSIS
 

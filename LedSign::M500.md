@@ -4,7 +4,7 @@ LedSign::M500 - send text and graphics to led signs
 
 # VERSION
 
-Version 1.01
+Version 1.02
 
 # SYNOPSIS
 

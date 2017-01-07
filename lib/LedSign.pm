@@ -3,7 +3,7 @@ use Carp;
 use strict;
 use warnings;
 use 5.008001;
-$LedSign::VERSION="1.01";
+$LedSign::VERSION="1.02";
 #
 # Use Win32::Serial port on Windows otherwise, use Device::SerialPort
 #;
@@ -181,7 +181,7 @@ LedSign - Perl library to communicate with various models of programmable LED si
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =head1 DESCRIPTION
 
