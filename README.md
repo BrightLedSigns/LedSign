@@ -12,6 +12,8 @@ The LedSign library is used to send text and graphics to different models of pro
 
 It has been tested on both Linux and Windows, and should theoretically run anywhere where the [Device::SerialPort](http://search.cpan.org/perldoc?Device%3A%3ASerialPort) or [Win32::SerialPort](http://search.cpan.org/perldoc?Win32%3A%3ASerialPort) modules can be  run.  
 
+Note for Windows users: [Win32::SerialPort](http://search.cpan.org/perldoc?Win32%3A%3ASerialPort) is broken on most 64 bit installations of Perl for Windows.  Either use a 32 bit Perl install, or see [this bug](https://rt.cpan.org/Public/Bug/Display.html?id=113337) that has a comment on how to fix it manually. 
+
 # SYNOPSIS
 
 ```perl
