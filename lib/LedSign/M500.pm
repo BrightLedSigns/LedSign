@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use POSIX qw(strftime);
-$LedSign::M500::VERSION="1.02";
+$LedSign::M500::VERSION="1.03";
 #
 # Shared Constants / Globals
 #
@@ -752,7 +752,7 @@ LedSign::M500 - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 1.02
+Version 1.03
 
 =head1 SYNOPSIS
 
@@ -813,13 +813,11 @@ Valid values for time tags are shown in the code example above. See L</"font"> f
   # font, color, and time tag example
   $sign->queueMsg(
       data => "<f:7X6><c:YELLOW>6 pixel yellow<f:7X9>9 pixel" .
-              "<c:RED>The time is <t:A>"
+              "<c:RED>The time is <t:TIME1>"
   ) 
-  # valid values for time tags
-  # A - hh:mm:ss      B - hh:mm:ss AM/PM   C - hh:mm       D hh:mm AM/PM
-  # E - mm/dd/yyyy    F - yyyy-mm-dd       G - dd.MM yyyy  H mm'dd'yyyy
-  # I - short spelling of day (SUN, MON, TUE, etc)
-  # I - long spelling of day (Sunday, Monday, Tuesday, etc)
+  # valid values for date and time tags
+  # DATE1,DATE2,DATE3,DATE4,TIME1,TIME1,TIME3
+  # ToDo: Add examples for each date and time format
 
 =item B<effect>
 

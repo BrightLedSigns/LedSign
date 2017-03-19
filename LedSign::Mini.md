@@ -4,7 +4,7 @@ LedSign::Mini - send text and graphics to small LED badges and signs
 
 # VERSION
 
-Version 1.02
+Version 1.03
 
 # SYNOPSIS
 

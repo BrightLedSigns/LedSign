@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use POSIX qw(strftime);
-$LedSign::BB::VERSION="1.02";
+$LedSign::BB::VERSION="1.03";
 #
 # Shared Constants / Globals
 #
@@ -756,7 +756,7 @@ LedSign::BB - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 1.02
+Version 1.03
 
 =head1 SYNOPSIS
 

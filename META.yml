@@ -15,10 +15,10 @@ name: LedSign
 provides:
   LedSign:
     file: lib/LedSign.pm
-    version: 1.02
+    version: 1.03
   LedSign::BB:
     file: lib/LedSign/BB.pm
-    version: 1.02
+    version: 1.03
   LedSign::BB::Command:
     file: lib/LedSign/BB.pm
     version: 0
@@ -42,7 +42,7 @@ provides:
     version: 0
   LedSign::M500:
     file: lib/LedSign/M500.pm
-    version: 1.02
+    version: 1.03
   LedSign::M500::Command:
     file: lib/LedSign/M500.pm
     version: 0
@@ -60,7 +60,7 @@ provides:
     version: 0
   LedSign::Mini:
     file: lib/LedSign/Mini.pm
-    version: 1.02
+    version: 1.03
   LedSign::Mini::Clipart:
     file: lib/LedSign/Mini.pm
     version: 0
@@ -89,4 +89,4 @@ requires:
   perl: 5.008001
 resources:
   license: http://www.freebsd.org/copyright/freebsd-license.html
-version: 1.02
+version: 1.03

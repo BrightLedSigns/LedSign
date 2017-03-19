@@ -31,11 +31,11 @@
    "provides" : {
       "LedSign" : {
          "file" : "lib/LedSign.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "LedSign::BB" : {
          "file" : "lib/LedSign/BB.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "LedSign::BB::Command" : {
          "file" : "lib/LedSign/BB.pm",
@@ -67,7 +67,7 @@
       },
       "LedSign::M500" : {
          "file" : "lib/LedSign/M500.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "LedSign::M500::Command" : {
          "file" : "lib/LedSign/M500.pm",
@@ -91,7 +91,7 @@
       },
       "LedSign::Mini" : {
          "file" : "lib/LedSign/Mini.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "LedSign::Mini::Clipart" : {
          "file" : "lib/LedSign/Mini.pm",
@@ -128,5 +128,5 @@
          "http://www.freebsd.org/copyright/freebsd-license.html"
       ]
    },
-   "version" : "1.02"
+   "version" : "1.03"
 }

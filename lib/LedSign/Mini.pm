@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use 5.008001;
-$LedSign::Mini::VERSION="1.02";
+$LedSign::Mini::VERSION="1.03";
 #
 # Shared Constants / Globals
 #
@@ -1289,7 +1289,7 @@ LedSign::Mini - send text and graphics to small LED badges and signs
  
 =head1 VERSION
 
-Version 1.02
+Version 1.03
 
 =head1 SYNOPSIS
 
