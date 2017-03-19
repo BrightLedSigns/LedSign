@@ -4,7 +4,7 @@ LedSign - Perl library to communicate with various models of programmable LED si
 
 # VERSION
 
-Version 1.03
+Version 1.04
 
 # DESCRIPTION
 

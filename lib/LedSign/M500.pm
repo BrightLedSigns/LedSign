@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use POSIX qw(strftime);
-$LedSign::M500::VERSION="1.03";
+$LedSign::M500::VERSION="1.04";
 #
 # Shared Constants / Globals
 #
@@ -539,25 +539,10 @@ sub checksum {
     return $checksum;
 }
 
-sub header {
-    my $this = shift;
-
-    # 5 null bytes for the header;
-    my $header = pack( "C*", ( 0x00, 0x00, 0x00, 0x00, 0x00 ) );
-
-    # start command
-    $header .= pack( "C", 0x01 );
-
-    # pc addr (first two bytes) + sign address (next two bytes)
-    # hardcoding to FF00 for now
-    $header .= 'FF00';
-    return $header;
-}
 
 sub encode {
     my $this    = shift;
     my $objtype = $this->{'objtype'};
-    my $header  = $this->header;
     my $msg;
 
     # STX
@@ -752,7 +737,7 @@ LedSign::M500 - send text and graphics to led signs
  
 =head1 VERSION
 
-Version 1.03
+Version 1.04
 
 =head1 SYNOPSIS
 

@@ -1,5 +1,6 @@
 Revision history for LedSign
-1.02    Sat, Mar 18, 2017 - Fix docs around time/date tags
+1.04    Sat, Mar 18, 2017 - Remove unused header() sub from M500
+1.03    Sat, Mar 18, 2017 - Fix docs around time/date tags
 1.00    Mon, Jan 06, 2014     
 
   Original Release
