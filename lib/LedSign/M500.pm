@@ -599,7 +599,7 @@ sub encode {
         $msg .= $pause;
     }
     $msgdata .= "\r\r\r";
-    $msg .= $msgdata;
+    $msg = $header . $msg . $msgdata;
     # End of Text - ETX
     # Supposed to be a checksum - sign seems to ignore it though.
     # EOT - End of Transmission
